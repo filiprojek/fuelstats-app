@@ -1,0 +1,55 @@
+name: Build and Release APK
+
+on:
+  push:
+    tags:
+      - "v*.*.*" # Runs only when a version tag is pushed
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.29.3"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Create Gitea release
+        env:
+          TOKEN_GITEA: ${{ secrets.TOKEN_GITEA }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          curl -X POST https://git.filiprojek.cz/api/v1/repos/fr/android_fuelstats/releases \
+            -H "Authorization: token $TOKEN_GITEA" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "tag_name": "'"$TAG_NAME"'",
+              "name": "'"$TAG_NAME"'",
+              "body": "Automated release for version '"$TAG_NAME"'",
+              "draft": false,
+              "prerelease": false
+            }'
+
+      - name: Upload APK to release
+        env:
+          TOKEN_GITEA: ${{ secrets.TOKEN_GITEA }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          # Get release ID
+          RELEASE_ID=$(curl -s -H "Authorization: token $TOKEN_GITEA" \
+            https://git.filiprojek.cz/api/v1/repos/fr/android_fuelstats/releases/tags/$TAG_NAME \
+            | jq -r '.id')
+
+          curl -X POST \
+            -H "Authorization: token $TOKEN_GITEA" \
+            -F "attachment=@build/app/outputs/flutter-apk/app-release.apk" \
+            https://git.filiprojek.cz/api/v1/repos/fr/android_fuelstats/releases/$RELEASE_ID/assets
