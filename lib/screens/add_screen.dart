@@ -23,7 +23,6 @@ class _AddScreenState extends State<AddScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Add Entry')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

@@ -5,7 +5,6 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Fuel Stats')),
       body: SingleChildScrollView(
         child: Column(
           children: [

@@ -79,7 +79,6 @@ class _VehiclesScreenState extends State<VehiclesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Vehicles')),
       body:
           _vehicles.isEmpty
               ? Center(child: Text('No vehicles added yet.'))
