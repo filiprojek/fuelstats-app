@@ -4,6 +4,7 @@ import 'screens/add_screen.dart';
 import 'screens/vehicles_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/user_settings.dart';
+import 'screens/login.dart';
 
 void main() {
   runApp(FuelStatsApp());
@@ -17,6 +18,7 @@ class FuelStatsApp extends StatelessWidget {
       themeMode: ThemeMode.dark,
       debugShowCheckedModeBanner: false,
       home: MainNavigation(),
+      //home: LoginScreen(),
     );
   }
 }
@@ -30,6 +32,16 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
+  bool loggedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if(loggedIn == false) {
+      _currentIndex = 5;
+    }
+  }
 
   final List<Widget> _screens = [
     HomeScreen(),
@@ -37,6 +49,7 @@ class _MainNavigationState extends State<MainNavigation> {
     VehiclesScreen(),
     HistoryScreen(),
     UserSettingsScreen(),
+    LoginScreen()
   ];
 
   final List<Widget> titles = [
