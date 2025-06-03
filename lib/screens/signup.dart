@@ -1,35 +1,33 @@
 import 'package:flutter/material.dart';
-import 'signup.dart';
 
-class LoginScreen extends StatefulWidget {
-  final VoidCallback onSwitchToSignup;
-  const LoginScreen({required this.onSwitchToSignup, super.key});
+class SignupScreen extends StatefulWidget {
+  final VoidCallback onSwitchToLogin;
+  const SignupScreen({required this.onSwitchToLogin, super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _login() {
+  void _signup() {
     if (_formKey.currentState!.validate()) {
+      final username = _usernameController.text;
       final email = _emailController.text;
       final password = _passwordController.text;
-      // TODO: Replace with actual login logic
-      print('Logging in with $email and $password');
-      if(email == "test@test.com" && password == "Test1234") {
-        
-      }
+      // TODO: Replace with actual signup logic
+      print('Signing up with $username, $email, $password');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //appBar: AppBar(title: Text('User Login')),
+      //appBar: AppBar(title: Text('Sign Up')),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Form(
@@ -37,16 +35,29 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Center(
             child: SingleChildScrollView(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Log in to Fuel Stats',
+                    'Create your Fuel Stats account',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 32),
+                  TextFormField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      labelText: 'Username',
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty)
+                        return 'Please enter a username';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
@@ -57,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
                       if (value == null || value.isEmpty)
-                        return 'Please enter your email';
+                        return 'Please enter an email';
                       if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value))
                         return 'Enter a valid email';
                       return null;
@@ -74,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     obscureText: true,
                     validator: (value) {
                       if (value == null || value.isEmpty)
-                        return 'Please enter your password';
+                        return 'Please enter a password';
                       if (value.length < 6)
                         return 'Password must be at least 6 characters';
                       return null;
@@ -82,19 +93,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
-                    onPressed: _login,
-                    icon: Icon(Icons.login),
-                    label: Text('Log In'),
+                    onPressed: _signup,
+                    icon: Icon(Icons.person_add),
+                    label: Text('Sign Up'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
                       padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                     ),
                   ),
                   const SizedBox(height: 12),
                   TextButton(
-                    onPressed: widget.onSwitchToSignup,
-                    child: Text("Don't have an account? Sign up"),
+                    onPressed: widget.onSwitchToLogin,
+                    child: Text("Already have an account? Log in"),
                   ),
                 ],
               ),
