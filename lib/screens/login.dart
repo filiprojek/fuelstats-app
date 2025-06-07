@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
-import 'signup.dart';
+import 'package:provider/provider.dart';
+import '../services/session_manager.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback onSwitchToSignup;
-  const LoginScreen({required this.onSwitchToSignup, super.key});
+  final VoidCallback onLoginSuccess; // ✅ ADD THIS
+
+  const LoginScreen({
+    required this.onSwitchToSignup,
+    required this.onLoginSuccess, // ✅ ADD THIS
+    super.key,
+  });
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -18,10 +25,18 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text;
       final password = _passwordController.text;
-      // TODO: Replace with actual login logic
-      print('Logging in with $email and $password');
-      if(email == "test@test.com" && password == "Test1234") {
-        
+
+      if (email == "test@test.com" && password == "Test1234") {
+        Provider.of<SessionManager>(context, listen: false).login(
+          token: "dummy_token",
+          email: email,
+          name: "John Doe",
+        );
+        widget.onLoginSuccess(); // ✅ FIXED: now defined
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Invalid credentials")),
+        );
       }
     }
   }
@@ -29,7 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //appBar: AppBar(title: Text('User Login')),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Form(

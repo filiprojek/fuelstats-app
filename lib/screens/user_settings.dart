@@ -1,30 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:provider/provider.dart';
+import '../services/session_manager.dart';
+
 class UserSettingsScreen extends StatelessWidget {
+  final VoidCallback onLogout;
+
+  const UserSettingsScreen({required this.onLogout, super.key});
+
   Future<String> _getVersion() async {
     final info = await PackageInfo.fromPlatform();
-    //return 'Version: ${info.version}+${info.buildNumber}';
     return 'Version: ${info.version}';
   }
 
   @override
   Widget build(BuildContext context) {
+    final session = Provider.of<SessionManager>(context);
+    final userName = session.name ?? "Unknown User"; // fallback just in case
+
     return Scaffold(
       appBar: AppBar(title: Text('User settings')),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              "Test User",
+            Text(
+              userName,
               style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
             ),
-
             SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: () {
-                // TODO: Add sign-out logic here
+              onPressed: () async {
+                await session.logout();
+                onLogout();
               },
               icon: Icon(Icons.logout),
               label: Text("Sign Out"),
@@ -53,3 +64,4 @@ class UserSettingsScreen extends StatelessWidget {
     );
   }
 }
+
