@@ -64,9 +64,9 @@ class HistoryScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => AddScreen(refuel: r),
+                            builder: (_) => AddScreen(refuel: r, standalone: true),
                           ),
-                        );
+                          );
                       },
                     ),
                     if (r.id != null)

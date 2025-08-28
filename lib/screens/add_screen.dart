@@ -8,8 +8,9 @@ import '../services/session_manager.dart';
 class AddScreen extends StatefulWidget {
   final Refuel? refuel;
   final VoidCallback? onSaved;
+  final bool standalone;
 
-  AddScreen({this.refuel, this.onSaved});
+  AddScreen({this.refuel, this.onSaved, this.standalone = false});
 
   @override
   _AddScreenState createState() => _AddScreenState();
@@ -67,57 +68,52 @@ class _AddScreenState extends State<AddScreen> {
   Widget build(BuildContext context) {
     final session = Provider.of<SessionManager>(context);
     final vehicles = session.vehicles;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-            widget.refuel == null ? 'Add Refuel Record' : 'Edit Refuel Record'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: 'Vehicle'),
-                  value: _selectedVehicleId,
-                  items: vehicles
-                      .map(
-                        (vehicle) => DropdownMenuItem(
-                          value: vehicle.id,
-                          child: Text(vehicle.name),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedVehicleId = value;
-                      final vehicle =
-                          vehicles.firstWhere((v) => v.id == value);
-                      _selectedFuelType = vehicle.fuelType;
-                    });
-                  },
-                  validator:
-                      (value) => value == null ? 'Please select a vehicle' : null,
-                ),
-                SizedBox(height: 16),
-                DropdownButtonFormField<FuelType>(
-                  decoration: InputDecoration(labelText: 'Fuel Type'),
-                  value: _selectedFuelType,
-                  items: FuelType.values
-                      .map((fuel) => DropdownMenuItem(
-                            value: fuel,
-                            child: Text(fuel.label),
-                          ))
-                      .toList(),
-                  onChanged: (value) => setState(() => _selectedFuelType = value),
-                  validator:
-                      (value) => value == null ? 'Please select a fuel type' : null,
-                ),
-                SizedBox(height: 16),
-                TextFormField(
+
+    final form = Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(labelText: 'Vehicle'),
+                value: _selectedVehicleId,
+                items: vehicles
+                    .map(
+                      (vehicle) => DropdownMenuItem(
+                        value: vehicle.id,
+                        child: Text(vehicle.name),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedVehicleId = value;
+                    final vehicle = vehicles.firstWhere((v) => v.id == value);
+                    _selectedFuelType = vehicle.fuelType;
+                  });
+                },
+                validator:
+                    (value) => value == null ? 'Please select a vehicle' : null,
+              ),
+              SizedBox(height: 16),
+              DropdownButtonFormField<FuelType>(
+                decoration: InputDecoration(labelText: 'Fuel Type'),
+                value: _selectedFuelType,
+                items: FuelType.values
+                    .map((fuel) => DropdownMenuItem(
+                          value: fuel,
+                          child: Text(fuel.label),
+                        ))
+                    .toList(),
+                onChanged: (value) => setState(() => _selectedFuelType = value),
+                validator:
+                    (value) => value == null ? 'Please select a fuel type' : null,
+              ),
+              SizedBox(height: 16),
+              TextFormField(
                   controller: _litersController,
                   focusNode: _litersFocus,
                   decoration: InputDecoration(labelText: 'Liters'),
@@ -169,6 +165,18 @@ class _AddScreenState extends State<AddScreen> {
         ),
       ),
     );
+
+    if (widget.standalone) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(
+              widget.refuel == null ? 'Add Refuel Record' : 'Edit Refuel Record'),
+        ),
+        body: form,
+      );
+    }
+
+    return form;
   }
 
   String? _numberValidator(String? value) {
