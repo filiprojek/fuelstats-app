@@ -1,128 +1,137 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-enum FuelType { Diesel, Gasoline95, Gasoline98, Other }
+import '../models/vehicle.dart';
+import '../services/session_manager.dart';
 
-class Vehicle {
-  final String name;
-  final String registrationPlate;
-  final FuelType fuelType;
-  final String? note;
-
-  Vehicle({
-    required this.name,
-    required this.registrationPlate,
-    required this.fuelType,
-    this.note,
-  });
-}
-
-class VehiclesScreen extends StatefulWidget {
-  @override
-  _VehiclesScreenState createState() => _VehiclesScreenState();
-}
-
-class _VehiclesScreenState extends State<VehiclesScreen> {
-  final List<Vehicle> _vehicles = [];
-
-  void _addVehicle() async {
-    final newVehicle = await showDialog<Vehicle>(
-      context: context,
-      builder: (context) => _AddVehicleDialog(),
-    );
-    if (newVehicle != null) {
-      setState(() {
-        _vehicles.add(newVehicle);
-      });
-    }
-  }
-
-  void _removeVehicle(int index) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Confirm Removal'),
-            content: Text('Are you sure you want to delete this vehicle?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text('Delete'),
-              ),
-            ],
-          ),
-    );
-
-    if (confirm == true) {
-      setState(() {
-        _vehicles.removeAt(index);
-      });
-    }
-  }
-
-  String _fuelTypeToString(FuelType fuelType) {
-    switch (fuelType) {
-      case FuelType.Diesel:
-        return 'Diesel';
-      case FuelType.Gasoline95:
-        return 'Gasoline 95';
-      case FuelType.Gasoline98:
-        return 'Gasoline 98';
-      case FuelType.Other:
-        return 'Other';
-    }
-  }
-
+class VehiclesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final session = Provider.of<SessionManager>(context);
+    final vehicles = session.vehicles;
     return Scaffold(
-      body:
-          _vehicles.isEmpty
-              ? Center(child: Text('No vehicles added yet.'))
-              : ListView.builder(
-                itemCount: _vehicles.length,
-                itemBuilder: (context, index) {
-                  final vehicle = _vehicles[index];
-                  return ListTile(
-                    title: Text(vehicle.name),
-                    subtitle: Text(
-                      '${vehicle.registrationPlate} • ${_fuelTypeToString(vehicle.fuelType)}${vehicle.note != null ? ' • ${vehicle.note}' : ''}',
-                    ),
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _removeVehicle(index),
-                    ),
-                  );
-                },
-              ),
+      body: vehicles.isEmpty
+          ? Center(child: Text('No vehicles added yet.'))
+          : ListView.builder(
+              itemCount: vehicles.length,
+              itemBuilder: (context, index) {
+                final vehicle = vehicles[index];
+                final isDefault = vehicle.isDefault;
+                return ListTile(
+                  title: Text(vehicle.name),
+                  subtitle: Text(
+                    '${vehicle.registrationPlate} • ${vehicle.fuelType.label}'
+                    '${vehicle.note != null ? ' • ${vehicle.note}' : ''}',
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.star,
+                            color: isDefault ? Colors.amber : Colors.grey),
+                        tooltip:
+                            isDefault ? 'Unset default' : 'Set as default',
+                        onPressed: () => session.setDefaultVehicle(
+                            isDefault ? null : vehicle.id),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.edit, color: Colors.blue),
+                        onPressed: () => _editVehicle(context, session, index, vehicle),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => _removeVehicle(context, session, index),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addVehicle,
+        onPressed: () => _addVehicle(context, session),
         child: Icon(Icons.add),
         tooltip: 'Add Vehicle',
       ),
     );
   }
+
+  void _addVehicle(BuildContext context, SessionManager session) async {
+    final newVehicle = await showDialog<Vehicle>(
+      context: context,
+      builder: (context) => _VehicleDialog(),
+    );
+    if (newVehicle != null) {
+      await session.addVehicle(newVehicle);
+    }
+  }
+
+  void _editVehicle(BuildContext context, SessionManager session, int index,
+      Vehicle vehicle) async {
+    final updatedVehicle = await showDialog<Vehicle>(
+      context: context,
+      builder: (context) => _VehicleDialog(vehicle: vehicle),
+    );
+    if (updatedVehicle != null) {
+      await session.updateVehicle(index, updatedVehicle);
+    }
+  }
+
+  void _removeVehicle(
+      BuildContext context, SessionManager session, int index) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Confirm Removal'),
+        content: Text(
+            'Are you sure you want to delete this vehicle? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await session.removeVehicle(index);
+    }
+  }
 }
 
-class _AddVehicleDialog extends StatefulWidget {
+class _VehicleDialog extends StatefulWidget {
+  final Vehicle? vehicle;
+  const _VehicleDialog({this.vehicle});
+
   @override
-  _AddVehicleDialogState createState() => _AddVehicleDialogState();
+  _VehicleDialogState createState() => _VehicleDialogState();
 }
 
-class _AddVehicleDialogState extends State<_AddVehicleDialog> {
+class _VehicleDialogState extends State<_VehicleDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _plateController = TextEditingController();
-  final _noteController = TextEditingController();
+  late TextEditingController _nameController;
+  late TextEditingController _plateController;
+  late TextEditingController _noteController;
   FuelType? _selectedFuelType;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.vehicle?.name ?? '');
+    _plateController =
+        TextEditingController(text: widget.vehicle?.registrationPlate ?? '');
+    _noteController = TextEditingController(text: widget.vehicle?.note ?? '');
+    _selectedFuelType = widget.vehicle?.fuelType;
+  }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Add New Vehicle'),
+      title: Text(widget.vehicle == null ? 'Add New Vehicle' : 'Edit Vehicle'),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -132,35 +141,27 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(labelText: 'Vehicle Name'),
-                validator:
-                    (value) =>
-                        value == null || value.isEmpty
-                            ? 'Enter a vehicle name'
-                            : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Enter a vehicle name' : null,
               ),
               TextFormField(
                 controller: _plateController,
                 decoration: InputDecoration(labelText: 'Registration Plate'),
-                validator:
-                    (value) =>
-                        value == null || value.isEmpty
-                            ? 'Enter a plate number'
-                            : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Enter a plate number' : null,
               ),
               DropdownButtonFormField<FuelType>(
                 decoration: InputDecoration(labelText: 'Fuel Type'),
                 value: _selectedFuelType,
-                items:
-                    FuelType.values.map((fuelType) {
-                      return DropdownMenuItem(
-                        value: fuelType,
-                        child: Text(fuelType.name),
-                      );
-                    }).toList(),
+                items: FuelType.values
+                    .map((fuelType) => DropdownMenuItem(
+                          value: fuelType,
+                          child: Text(fuelType.label),
+                        ))
+                    .toList(),
                 onChanged: (value) => setState(() => _selectedFuelType = value),
-                validator:
-                    (value) =>
-                        value == null ? 'Please select a fuel type' : null,
+                validator: (value) =>
+                    value == null ? 'Please select a fuel type' : null,
               ),
               TextFormField(
                 controller: _noteController,
@@ -179,16 +180,18 @@ class _AddVehicleDialogState extends State<_AddVehicleDialog> {
           onPressed: () {
             if (_formKey.currentState?.validate() ?? false) {
               final vehicle = Vehicle(
+                id: widget.vehicle?.id,
                 name: _nameController.text,
                 registrationPlate: _plateController.text,
                 fuelType: _selectedFuelType!,
                 note:
                     _noteController.text.isEmpty ? null : _noteController.text,
+                isDefault: widget.vehicle?.isDefault ?? false,
               );
               Navigator.pop(context, vehicle);
             }
           },
-          child: Text('Add'),
+          child: Text(widget.vehicle == null ? 'Add' : 'Save'),
         ),
       ],
     );
