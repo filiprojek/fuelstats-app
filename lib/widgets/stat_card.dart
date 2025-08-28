@@ -9,7 +9,6 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.all(8),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
         child: Column(

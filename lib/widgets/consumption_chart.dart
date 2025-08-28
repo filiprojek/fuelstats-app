@@ -31,7 +31,35 @@ class ConsumptionChart extends StatelessWidget {
             dotData: const FlDotData(show: true),
           )
         ],
-        titlesData: const FlTitlesData(show: false),
+        lineTouchData: LineTouchData(
+          touchTooltipData: LineTouchTooltipData(
+            tooltipBgColor: Colors.black87,
+            tooltipMargin: 24,
+            fitInsideHorizontally: true,
+            fitInsideVertically: true,
+          ),
+        ),
+        titlesData: FlTitlesData(
+          leftTitles: AxisTitles(
+            axisNameWidget: const Text('L/100km'),
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 40,
+              getTitlesWidget: (value, meta) =>
+                  Text(value.toStringAsFixed(1), style: const TextStyle(fontSize: 10)),
+            ),
+          ),
+          bottomTitles: AxisTitles(
+            axisNameWidget: const Text('Refuel'),
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) =>
+                  Text('${value.toInt() + 1}', style: const TextStyle(fontSize: 10)),
+            ),
+          ),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        ),
         gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),
       ),

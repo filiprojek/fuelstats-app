@@ -93,12 +93,25 @@ class HomeScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Stats for ${vehicle.name}',
-                      style: const TextStyle(fontSize: 18)),
+                  Card(
+                    color: Theme.of(context).colorScheme.secondaryContainer,
+                    child: ListTile(
+                      leading: const Icon(Icons.directions_car),
+                      title: Text(vehicle.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text(vehicle.registrationPlate),
+                      trailing:
+                          const Icon(Icons.star, color: Colors.amber),
+                    ),
+                  ),
                   const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio: 3,
                     children: [
                       StatCard(
                         title: 'Avg consumption (all time)',
@@ -118,10 +131,8 @@ class HomeScreen extends StatelessWidget {
                   const Text('Kilometers driven',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
+                  Builder(builder: (context) {
+                    final kmCards = [
                       StatCard(
                         title: 'Since last refuel',
                         value: kmLast != null ? '$kmLast km' : '-',
@@ -130,8 +141,20 @@ class HomeScreen extends StatelessWidget {
                       StatCard(title: 'Past 6 months', value: '$km6m km'),
                       StatCard(title: 'Past year', value: '$km1y km'),
                       StatCard(title: 'All time', value: '$kmAll km'),
-                    ],
-                  ),
+                    ];
+                    if (kmCards.length.isOdd) {
+                      kmCards.add(const SizedBox.shrink());
+                    }
+                    return GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                      childAspectRatio: 3,
+                      children: kmCards,
+                    );
+                  }),
                   if (lastRefuels.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     Text('Gas price (last ${lastRefuels.length} refuels)',
