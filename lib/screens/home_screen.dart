@@ -132,7 +132,7 @@ class HomeScreen extends StatelessWidget {
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   Builder(builder: (context) {
-                    final kmCards = [
+                    final kmCards = <Widget>[
                       StatCard(
                         title: 'Since last refuel',
                         value: kmLast != null ? '$kmLast km' : '-',
