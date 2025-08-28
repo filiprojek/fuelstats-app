@@ -87,12 +87,13 @@ class HomeScreen extends StatelessWidget {
             refuels.length > 14 ? refuels.sublist(refuels.length - 14) : refuels;
 
         return Scaffold(
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+          body: SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   Card(
                     color: Theme.of(context).colorScheme.secondaryContainer,
                     child: ListTile(
@@ -157,24 +158,31 @@ class HomeScreen extends StatelessWidget {
                   }),
                   if (lastRefuels.isNotEmpty) ...[
                     const SizedBox(height: 24),
+                    const Text('Refuel stats',
+                        style:
+                            TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
                     Text('Gas price (last ${lastRefuels.length} refuels)',
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
                     SizedBox(
                       height: 200,
                       child: GasPriceChart(refuels: lastRefuels),
                     ),
+                    if (lastRefuels.length > 1) ...[
+                      const SizedBox(height: 24),
+                      const Text('Consumption trend',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 200,
+                        child: ConsumptionChart(refuels: lastRefuels),
+                      ),
+                    ],
                   ],
-                  if (lastRefuels.length > 1) ...[
-                    const SizedBox(height: 24),
-                    const Text('Consumption trend',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    SizedBox(
-                      height: 200,
-                      child: ConsumptionChart(refuels: lastRefuels),
-                    ),
-                  ],
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
