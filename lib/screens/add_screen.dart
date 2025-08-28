@@ -68,6 +68,10 @@ class _AddScreenState extends State<AddScreen> {
     final session = Provider.of<SessionManager>(context);
     final vehicles = session.vehicles;
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+            widget.refuel == null ? 'Add Refuel Record' : 'Edit Refuel Record'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
