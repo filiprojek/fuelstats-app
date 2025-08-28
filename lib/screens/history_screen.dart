@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:ui';
 
 import '../services/session_manager.dart';
 import 'add_screen.dart';
@@ -64,18 +65,35 @@ class HistoryScreen extends StatelessWidget {
             itemCount: refuels.length,
             itemBuilder: (context, index) {
               final r = refuels[index];
+              final textStyle = const TextStyle(
+                  fontFeatures: [FontFeature.tabularFigures()]);
               return ListTile(
                 leading: Icon(Icons.local_gas_station, color: Colors.green),
                 title: Row(
                   children: [
-                    Text(_formatCurrency(r.totalPrice)),
-                    SizedBox(width: 16),
-                    Text('${_formatCurrency(r.pricePerLiter)}/L'),
-                    SizedBox(width: 16),
-                    Text('${_formatNumber(r.liters)} L'),
+                    Expanded(
+                      child: Text(
+                        '${_formatNumber(r.liters)} L',
+                        style: textStyle,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '${_formatCurrency(r.pricePerLiter)}/L',
+                        textAlign: TextAlign.center,
+                        style: textStyle,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        _formatCurrency(r.totalPrice),
+                        textAlign: TextAlign.end,
+                        style: textStyle,
+                      ),
+                    ),
                   ],
                 ),
-                subtitle: Text(_formatDateTime(r.createdAt)),
+                subtitle: Text(_formatDateTime(r.createdAt), style: textStyle),
                 onTap: () {
                   showDialog(
                     context: context,
