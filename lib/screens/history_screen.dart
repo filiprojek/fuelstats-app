@@ -25,6 +25,19 @@ class HistoryScreen extends StatelessWidget {
     return '$day.$month.${d.year}';
   }
 
+  Widget _detailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('$label: ', style: TextStyle(fontWeight: FontWeight.bold)),
+          Expanded(child: Text(value)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<SessionManager>(
@@ -47,14 +60,44 @@ class HistoryScreen extends StatelessWidget {
             itemCount: refuels.length,
             itemBuilder: (context, index) {
               final r = refuels[index];
-              final date =
-                  r.createdAt != null ? ' | ${_formatDate(r.createdAt!)}' : '';
               return ListTile(
                 leading: Icon(Icons.local_gas_station, color: Colors.green),
-                title: Text(
-                    '${_formatNumber(r.liters)} L | ${_formatCurrency(r.pricePerLiter)}'),
-                subtitle: Text(
-                    'Total: ${_formatCurrency(r.totalPrice)} | Mileage: ${_formatNumber(r.mileage)} km$date'),
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('${_formatNumber(r.liters)} L'),
+                    Text('${_formatCurrency(r.pricePerLiter)}/L'),
+                    Text(_formatCurrency(r.totalPrice)),
+                  ],
+                ),
+                subtitle: Text(_formatDate(r.createdAt)),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('Refuel Details'),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _detailRow('Liters', '${_formatNumber(r.liters)} L'),
+                          _detailRow('Price/L', '${_formatCurrency(r.pricePerLiter)}'),
+                          _detailRow('Total', _formatCurrency(r.totalPrice)),
+                          _detailRow('Mileage', '${_formatNumber(r.mileage)} km'),
+                          if (r.note != null && r.note!.isNotEmpty)
+                            _detailRow('Note', r.note!),
+                          _detailRow('Date', _formatDate(r.createdAt)),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Close'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
