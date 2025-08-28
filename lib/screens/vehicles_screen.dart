@@ -18,6 +18,16 @@ class VehiclesScreen extends StatelessWidget {
                 final vehicle = vehicles[index];
                 final isDefault = vehicle.isDefault;
                 return ListTile(
+                  tileColor: isDefault
+                      ? Theme.of(context).colorScheme.secondaryContainer
+                      : null,
+                  leading: IconButton(
+                    icon: Icon(Icons.star,
+                        color: isDefault ? Colors.amber : Colors.grey),
+                    tooltip: isDefault ? 'Unset default' : 'Set as default',
+                    onPressed: () => session.setDefaultVehicle(
+                        isDefault ? null : vehicle.id),
+                  ),
                   title: Text(vehicle.name),
                   subtitle: Text(
                     '${vehicle.registrationPlate} • ${vehicle.fuelType.label}'
@@ -26,14 +36,6 @@ class VehiclesScreen extends StatelessWidget {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
-                        icon: Icon(Icons.star,
-                            color: isDefault ? Colors.amber : Colors.grey),
-                        tooltip:
-                            isDefault ? 'Unset default' : 'Set as default',
-                        onPressed: () => session.setDefaultVehicle(
-                            isDefault ? null : vehicle.id),
-                      ),
                       IconButton(
                         icon: Icon(Icons.edit, color: Colors.blue),
                         onPressed: () => _editVehicle(context, session, index, vehicle),
