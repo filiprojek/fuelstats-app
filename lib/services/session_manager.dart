@@ -40,11 +40,20 @@ class SessionManager extends ChangeNotifier {
     _token = await _prefs.getString('token');
     _email = await _prefs.getString('email');
     _name = await _prefs.getString('name');
-    _loggedIn = _token != null;
-    if (_loggedIn) {
-      await fetchVehicles();
+
+    if (_token != null) {
+      final valid = await _validateToken();
+      if (valid) {
+        _loggedIn = true;
+        await fetchVehicles();
+        notifyListeners();
+      } else {
+        await logout();
+      }
+    } else {
+      _loggedIn = false;
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   Future<void> login({
@@ -60,6 +69,10 @@ class SessionManager extends ChangeNotifier {
     _email = email;
     _name = name;
     _loggedIn = true;
+
+    // Ensure we have the latest user info and that the token is valid
+    await _validateToken();
+
     await fetchVehicles();
     notifyListeners();
   }
@@ -80,6 +93,25 @@ class SessionManager extends ChangeNotifier {
         'Content-Type': 'application/json',
         if (_token != null) 'Authorization': 'Bearer $_token',
       };
+
+  Future<bool> _validateToken() async {
+    if (_token == null) return false;
+    try {
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/v1/user/me'),
+        headers: _authHeaders(),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _email = data['email'] ?? _email;
+        _name = data['username'] ?? data['name'] ?? _name;
+        if (_email != null) await _prefs.setString('email', _email!);
+        if (_name != null) await _prefs.setString('name', _name!);
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
 
   Future<void> fetchVehicles() async {
     try {
