@@ -159,12 +159,11 @@ class _AddScreenState extends State<AddScreen> {
                       ? 'Create Fuel Record'
                       : 'Update Fuel Record'),
                 ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      ),
-    );
+        );
 
     if (widget.standalone) {
       return Scaffold(
