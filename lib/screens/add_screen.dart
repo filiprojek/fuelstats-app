@@ -211,11 +211,25 @@ class _AddScreenState extends State<AddScreen> {
       await session.updateRefuel(widget.refuel!.id!, refuel);
     }
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fuel record saved successfully!')),
-      );
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Fuel record saved successfully!')),
+    );
+
+    if (Navigator.canPop(context)) {
       Navigator.pop(context);
+    } else {
+      _formKey.currentState?.reset();
+      setState(() {
+        _selectedVehicleId = session.defaultVehicle?.id;
+        _selectedFuelType = session.defaultVehicle?.fuelType;
+      });
+      _litersController.clear();
+      _pricePerLiterController.clear();
+      _totalPriceController.clear();
+      _mileageController.clear();
+      _noteController.clear();
     }
   }
 
