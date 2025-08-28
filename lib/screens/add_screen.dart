@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../models/vehicle.dart';
+import '../services/session_manager.dart';
 
 class AddScreen extends StatefulWidget {
   @override
@@ -8,8 +12,8 @@ class AddScreen extends StatefulWidget {
 class _AddScreenState extends State<AddScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  String? _selectedVehicle;
-  String? _selectedFuelType;
+  String? _selectedVehicleId;
+  FuelType? _selectedFuelType;
   final TextEditingController _litersController = TextEditingController();
   final TextEditingController _pricePerLiterController =
       TextEditingController();
@@ -17,11 +21,18 @@ class _AddScreenState extends State<AddScreen> {
   final TextEditingController _mileageController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
 
-  final List<String> _vehicles = ['Car A', 'Car B', 'Car C'];
-  final List<String> _fuelTypes = ['Gasoline', 'Diesel', 'Electric'];
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final session = Provider.of<SessionManager>(context);
+    _selectedVehicleId ??= session.defaultVehicle?.id;
+    _selectedFuelType ??= session.defaultVehicle?.fuelType;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final session = Provider.of<SessionManager>(context);
+    final vehicles = session.vehicles;
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -33,33 +44,39 @@ class _AddScreenState extends State<AddScreen> {
               children: [
                 DropdownButtonFormField<String>(
                   decoration: InputDecoration(labelText: 'Vehicle'),
-                  value: _selectedVehicle,
-                  items:
-                      _vehicles.map((vehicle) {
-                        return DropdownMenuItem(
-                          value: vehicle,
-                          child: Text(vehicle),
-                        );
-                      }).toList(),
-                  onChanged:
-                      (value) => setState(() => _selectedVehicle = value),
+                  value: _selectedVehicleId,
+                  items: vehicles
+                      .map(
+                        (vehicle) => DropdownMenuItem(
+                          value: vehicle.id,
+                          child: Text(vehicle.name),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedVehicleId = value;
+                      final vehicle =
+                          vehicles.firstWhere((v) => v.id == value);
+                      _selectedFuelType = vehicle.fuelType;
+                    });
+                  },
                   validator:
-                      (value) =>
-                          value == null ? 'Please select a vehicle' : null,
+                      (value) => value == null ? 'Please select a vehicle' : null,
                 ),
                 SizedBox(height: 16),
-                DropdownButtonFormField<String>(
+                DropdownButtonFormField<FuelType>(
                   decoration: InputDecoration(labelText: 'Fuel Type'),
                   value: _selectedFuelType,
-                  items:
-                      _fuelTypes.map((fuel) {
-                        return DropdownMenuItem(value: fuel, child: Text(fuel));
-                      }).toList(),
-                  onChanged:
-                      (value) => setState(() => _selectedFuelType = value),
+                  items: FuelType.values
+                      .map((fuel) => DropdownMenuItem(
+                            value: fuel,
+                            child: Text(fuel.label),
+                          ))
+                      .toList(),
+                  onChanged: (value) => setState(() => _selectedFuelType = value),
                   validator:
-                      (value) =>
-                          value == null ? 'Please select a fuel type' : null,
+                      (value) => value == null ? 'Please select a fuel type' : null,
                 ),
                 SizedBox(height: 16),
                 TextFormField(
