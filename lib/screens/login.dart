@@ -1,5 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+
+import '../config.dart';
 import '../services/session_manager.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -21,21 +26,39 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _login() {
+  Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text;
       final password = _passwordController.text;
 
-      if (email == "test@test.com" && password == "Test1234") {
-        Provider.of<SessionManager>(context, listen: false).login(
-          token: "dummy_token",
-          email: email,
-          name: "John Doe",
+      try {
+        final response = await http.post(
+          Uri.parse('$apiBaseUrl/api/v1/auth/signin'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'email': email, 'password': password}),
         );
-        widget.onLoginSuccess(); // ✅ FIXED: now defined
-      } else {
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final token = data['token'];
+          final name = data['user']?['username'] ?? data['username'];
+
+          await Provider.of<SessionManager>(context, listen: false).login(
+            token: token,
+            email: email,
+            name: name,
+          );
+
+          widget.onLoginSuccess();
+        } else {
+          final data = jsonDecode(response.body);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data['message'] ?? 'Login failed')),
+          );
+        }
+      } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Invalid credentials")),
+          SnackBar(content: Text('Login error: $e')),
         );
       }
     }
