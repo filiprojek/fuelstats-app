@@ -17,24 +17,28 @@ class HistoryScreen extends StatelessWidget {
 
   String _formatCurrency(num value) => '${_formatNumber(value)},-';
 
-  String _formatDate(DateTime? date) {
+  String _formatDateTime(DateTime? date) {
     if (date == null) return '';
     final d = date.toLocal();
     final day = d.day.toString().padLeft(2, '0');
     final month = d.month.toString().padLeft(2, '0');
-    return '$day.$month.${d.year}';
+    final hour = d.hour.toString().padLeft(2, '0');
+    final minute = d.minute.toString().padLeft(2, '0');
+    return '$day.$month.${d.year} $hour:$minute';
   }
 
-  Widget _detailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('$label: ', style: TextStyle(fontWeight: FontWeight.bold)),
-          Expanded(child: Text(value)),
-        ],
-      ),
+  TableRow _detailRow(String label, String value) {
+    return TableRow(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Text(value),
+        ),
+      ],
     );
   }
 
@@ -63,30 +67,30 @@ class HistoryScreen extends StatelessWidget {
               return ListTile(
                 leading: Icon(Icons.local_gas_station, color: Colors.green),
                 title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('${_formatNumber(r.liters)} L'),
-                    Text('${_formatCurrency(r.pricePerLiter)}/L'),
                     Text(_formatCurrency(r.totalPrice)),
+                    SizedBox(width: 16),
+                    Text('${_formatCurrency(r.pricePerLiter)}/L'),
+                    SizedBox(width: 16),
+                    Text('${_formatNumber(r.liters)} L'),
                   ],
                 ),
-                subtitle: Text(_formatDate(r.createdAt)),
+                subtitle: Text(_formatDateTime(r.createdAt)),
                 onTap: () {
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
                       title: Text('Refuel Details'),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      content: Table(
+                        columnWidths: {0: IntrinsicColumnWidth()},
                         children: [
-                          _detailRow('Liters', '${_formatNumber(r.liters)} L'),
-                          _detailRow('Price/L', '${_formatCurrency(r.pricePerLiter)}'),
                           _detailRow('Total', _formatCurrency(r.totalPrice)),
+                          _detailRow('Price/L', '${_formatCurrency(r.pricePerLiter)}'),
+                          _detailRow('Liters', '${_formatNumber(r.liters)} L'),
                           _detailRow('Mileage', '${_formatNumber(r.mileage)} km'),
                           if (r.note != null && r.note!.isNotEmpty)
                             _detailRow('Note', r.note!),
-                          _detailRow('Date', _formatDate(r.createdAt)),
+                          _detailRow('Date', _formatDateTime(r.createdAt)),
                         ],
                       ),
                       actions: [
