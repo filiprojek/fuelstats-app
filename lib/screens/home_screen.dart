@@ -112,7 +112,7 @@ class HomeScreen extends StatelessWidget {
                     crossAxisCount: 2,
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
-                    childAspectRatio: 2.2,
+                    childAspectRatio: 2,
                     children: [
                       StatCard(
                         title: 'Avg consumption (all time)',
@@ -152,7 +152,7 @@ class HomeScreen extends StatelessWidget {
                       crossAxisCount: 2,
                       crossAxisSpacing: 8,
                       mainAxisSpacing: 8,
-                      childAspectRatio: 2.2,
+                      childAspectRatio: 2,
                       children: kmCards,
                     );
                   }),
