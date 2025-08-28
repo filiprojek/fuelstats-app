@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+
+import '../config.dart';
 
 import '../models/vehicle.dart';
 
@@ -16,7 +19,6 @@ class SessionManager extends ChangeNotifier {
   String? _name;
 
   List<Vehicle> _vehicles = [];
-  String? _defaultVehicleId;
 
   bool get isLoggedIn => _loggedIn;
   String? get token => _token;
@@ -26,7 +28,7 @@ class SessionManager extends ChangeNotifier {
   List<Vehicle> get vehicles => List.unmodifiable(_vehicles);
   Vehicle? get defaultVehicle {
     try {
-      return _vehicles.firstWhere((v) => v.id == _defaultVehicleId);
+      return _vehicles.firstWhere((v) => v.isDefault);
     } catch (_) {
       return null;
     }
@@ -38,9 +40,10 @@ class SessionManager extends ChangeNotifier {
     _token = await _prefs.getString('token');
     _email = await _prefs.getString('email');
     _name = await _prefs.getString('name');
-    await _loadVehicles();
-
     _loggedIn = _token != null;
+    if (_loggedIn) {
+      await fetchVehicles();
+    }
     notifyListeners();
   }
 
@@ -57,6 +60,7 @@ class SessionManager extends ChangeNotifier {
     _email = email;
     _name = name;
     _loggedIn = true;
+    await fetchVehicles();
     notifyListeners();
   }
 
@@ -64,61 +68,95 @@ class SessionManager extends ChangeNotifier {
     await _prefs.remove('token');
     await _prefs.remove('email');
     await _prefs.remove('name');
-    await _prefs.remove('vehicles');
-    await _prefs.remove('defaultVehicleId');
-
     _token = null;
     _email = null;
     _name = null;
     _vehicles.clear();
-    _defaultVehicleId = null;
     _loggedIn = false;
     notifyListeners();
   }
 
-  Future<void> _loadVehicles() async {
-    final List<String>? stored = await _prefs.getStringList('vehicles');
-    if (stored != null) {
-      _vehicles = stored.map((e) => Vehicle.fromJson(e)).toList();
-    }
-    _defaultVehicleId = await _prefs.getString('defaultVehicleId');
-  }
+  Map<String, String> _authHeaders() => {
+        'Content-Type': 'application/json',
+        if (_token != null) 'Authorization': 'Bearer $_token',
+      };
 
-  Future<void> _saveVehicles() async {
-    await _prefs.setStringList(
-        'vehicles', _vehicles.map((v) => v.toJson()).toList());
-    if (_defaultVehicleId != null) {
-      await _prefs.setString('defaultVehicleId', _defaultVehicleId!);
-    } else {
-      await _prefs.remove('defaultVehicleId');
+  Future<void> fetchVehicles() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/v1/vehicles'),
+        headers: _authHeaders(),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        _vehicles = data.map((e) => Vehicle.fromApi(e)).toList();
+        notifyListeners();
+      }
+    } catch (_) {
+      // ignore for now
     }
   }
 
   Future<void> addVehicle(Vehicle vehicle) async {
-    _vehicles.add(vehicle);
-    await _saveVehicles();
-    notifyListeners();
+    try {
+      final response = await http.post(
+        Uri.parse('$apiBaseUrl/api/v1/vehicles'),
+        headers: _authHeaders(),
+        body: jsonEncode(vehicle.toApiMap()),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        _vehicles.add(Vehicle.fromApi(data));
+        notifyListeners();
+      }
+    } catch (_) {}
   }
 
   Future<void> updateVehicle(int index, Vehicle vehicle) async {
-    _vehicles[index] = vehicle;
-    await _saveVehicles();
-    notifyListeners();
+    final id = _vehicles[index].id;
+    if (id == null) return;
+    try {
+      final response = await http.put(
+        Uri.parse('$apiBaseUrl/api/v1/vehicles/$id'),
+        headers: _authHeaders(),
+        body: jsonEncode(vehicle.toApiMap()),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _vehicles[index] = Vehicle.fromApi(data);
+        notifyListeners();
+      }
+    } catch (_) {}
   }
 
   Future<void> removeVehicle(int index) async {
-    if (_vehicles[index].id == _defaultVehicleId) {
-      _defaultVehicleId = null;
-    }
-    _vehicles.removeAt(index);
-    await _saveVehicles();
-    notifyListeners();
+    final id = _vehicles[index].id;
+    if (id == null) return;
+    try {
+      final response = await http.delete(
+        Uri.parse('$apiBaseUrl/api/v1/vehicles/$id'),
+        headers: _authHeaders(),
+      );
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        _vehicles.removeAt(index);
+        notifyListeners();
+      }
+    } catch (_) {}
   }
 
   Future<void> setDefaultVehicle(String? id) async {
-    _defaultVehicleId = id;
-    await _saveVehicles();
-    notifyListeners();
+    if (id == null) {
+      final idx = _vehicles.indexWhere((v) => v.isDefault);
+      if (idx != -1) {
+        await updateVehicle(idx, _vehicles[idx].copyWith(isDefault: false));
+      }
+    } else {
+      final idx = _vehicles.indexWhere((v) => v.id == id);
+      if (idx != -1) {
+        await updateVehicle(idx, _vehicles[idx].copyWith(isDefault: true));
+      }
+    }
+    await fetchVehicles();
   }
 }
 

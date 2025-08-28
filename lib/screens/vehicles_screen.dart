@@ -16,7 +16,7 @@ class VehiclesScreen extends StatelessWidget {
               itemCount: vehicles.length,
               itemBuilder: (context, index) {
                 final vehicle = vehicles[index];
-                final isDefault = session.defaultVehicle?.id == vehicle.id;
+                final isDefault = vehicle.isDefault;
                 return ListTile(
                   title: Text(vehicle.name),
                   subtitle: Text(
@@ -180,13 +180,13 @@ class _VehicleDialogState extends State<_VehicleDialog> {
           onPressed: () {
             if (_formKey.currentState?.validate() ?? false) {
               final vehicle = Vehicle(
-                id: widget.vehicle?.id ??
-                    DateTime.now().millisecondsSinceEpoch.toString(),
+                id: widget.vehicle?.id,
                 name: _nameController.text,
                 registrationPlate: _plateController.text,
                 fuelType: _selectedFuelType!,
                 note:
                     _noteController.text.isEmpty ? null : _noteController.text,
+                isDefault: widget.vehicle?.isDefault ?? false,
               );
               Navigator.pop(context, vehicle);
             }
