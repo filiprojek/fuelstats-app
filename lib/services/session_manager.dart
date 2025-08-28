@@ -146,11 +146,21 @@ class SessionManager extends ChangeNotifier {
 
   Future<void> setDefaultVehicle(String? id) async {
     if (id == null) {
-      final idx = _vehicles.indexWhere((v) => v.isDefault);
-      if (idx != -1) {
-        await updateVehicle(idx, _vehicles[idx].copyWith(isDefault: false));
+      // Unset default from any vehicle currently marked as default
+      for (var i = 0; i < _vehicles.length; i++) {
+        if (_vehicles[i].isDefault) {
+          await updateVehicle(i, _vehicles[i].copyWith(isDefault: false));
+        }
       }
     } else {
+      // Clear default flag on all other vehicles first
+      for (var i = 0; i < _vehicles.length; i++) {
+        final vehicle = _vehicles[i];
+        if (vehicle.isDefault && vehicle.id != id) {
+          await updateVehicle(i, vehicle.copyWith(isDefault: false));
+        }
+      }
+      // Finally mark the selected vehicle as default
       final idx = _vehicles.indexWhere((v) => v.id == id);
       if (idx != -1) {
         await updateVehicle(idx, _vehicles[idx].copyWith(isDefault: true));
