@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../config.dart';
 
 import '../models/vehicle.dart';
+import '../models/refuel.dart';
 
 class SessionManager extends ChangeNotifier {
   static final SessionManager _instance = SessionManager._internal();
@@ -19,6 +20,7 @@ class SessionManager extends ChangeNotifier {
   String? _name;
 
   List<Vehicle> _vehicles = [];
+  List<Refuel> _refuels = [];
 
   bool get isLoggedIn => _loggedIn;
   String? get token => _token;
@@ -26,6 +28,7 @@ class SessionManager extends ChangeNotifier {
   String? get name => _name;
 
   List<Vehicle> get vehicles => List.unmodifiable(_vehicles);
+  List<Refuel> get refuels => List.unmodifiable(_refuels);
   Vehicle? get defaultVehicle {
     try {
       return _vehicles.firstWhere((v) => v.isDefault);
@@ -46,6 +49,7 @@ class SessionManager extends ChangeNotifier {
       if (valid) {
         _loggedIn = true;
         await fetchVehicles();
+        await fetchRefuels();
         notifyListeners();
       } else {
         await logout();
@@ -74,6 +78,7 @@ class SessionManager extends ChangeNotifier {
     await _validateToken();
 
     await fetchVehicles();
+    await fetchRefuels();
     notifyListeners();
   }
 
@@ -85,6 +90,7 @@ class SessionManager extends ChangeNotifier {
     _email = null;
     _name = null;
     _vehicles.clear();
+    _refuels.clear();
     _loggedIn = false;
     notifyListeners();
   }
@@ -199,6 +205,67 @@ class SessionManager extends ChangeNotifier {
       }
     }
     await fetchVehicles();
+  }
+
+  // Refuel records
+  Future<void> fetchRefuels() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/v1/refuels'),
+        headers: _authHeaders(),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        _refuels = data.map((e) => Refuel.fromApi(e)).toList();
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> addRefuel(Refuel refuel) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiBaseUrl/api/v1/refuels'),
+        headers: _authHeaders(),
+        body: jsonEncode(refuel.toApiMap()),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        _refuels.add(Refuel.fromApi(data));
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> updateRefuel(String id, Refuel refuel) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$apiBaseUrl/api/v1/refuels/$id'),
+        headers: _authHeaders(),
+        body: jsonEncode(refuel.toApiMap()),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final idx = _refuels.indexWhere((r) => r.id == id);
+        if (idx != -1) {
+          _refuels[idx] = Refuel.fromApi(data);
+          notifyListeners();
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> removeRefuel(String id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$apiBaseUrl/api/v1/refuels/$id'),
+        headers: _authHeaders(),
+      );
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        _refuels.removeWhere((r) => r.id == id);
+        notifyListeners();
+      }
+    } catch (_) {}
   }
 }
 

@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/vehicle.dart';
+import '../models/refuel.dart';
 import '../services/session_manager.dart';
 
 class AddScreen extends StatefulWidget {
+  final Refuel? refuel;
+  AddScreen({this.refuel});
+
   @override
   _AddScreenState createState() => _AddScreenState();
 }
@@ -21,12 +25,36 @@ class _AddScreenState extends State<AddScreen> {
   final TextEditingController _mileageController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
 
+  bool _initialized = false;
+  bool _isRecalculating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _litersController.addListener(_recalculate);
+    _pricePerLiterController.addListener(_recalculate);
+    _totalPriceController.addListener(_recalculate);
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (_initialized) return;
     final session = Provider.of<SessionManager>(context);
-    _selectedVehicleId ??= session.defaultVehicle?.id;
-    _selectedFuelType ??= session.defaultVehicle?.fuelType;
+    if (widget.refuel != null) {
+      final r = widget.refuel!;
+      _selectedVehicleId = r.vehicleId;
+      _selectedFuelType = r.fuelType;
+      _litersController.text = r.liters.toString();
+      _pricePerLiterController.text = r.pricePerLiter.toString();
+      _totalPriceController.text = r.totalPrice.toString();
+      _mileageController.text = r.mileage.toString();
+      if (r.note != null) _noteController.text = r.note!;
+    } else {
+      _selectedVehicleId = session.defaultVehicle?.id;
+      _selectedFuelType = session.defaultVehicle?.fuelType;
+    }
+    _initialized = true;
   }
 
   @override
@@ -116,9 +144,11 @@ class _AddScreenState extends State<AddScreen> {
                 ElevatedButton(
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green, // green confirm button
+                    backgroundColor: Colors.green,
                   ),
-                  child: Text('Create Fuel Record'),
+                  child: Text(widget.refuel == null
+                      ? 'Create Fuel Record'
+                      : 'Update Fuel Record'),
                 ),
               ],
             ),
@@ -134,12 +164,48 @@ class _AddScreenState extends State<AddScreen> {
     return null;
   }
 
-  void _submitForm() {
-    if (_formKey.currentState?.validate() ?? false) {
-      // Here you would save the form data to database or state
+  void _recalculate() {
+    if (_isRecalculating) return;
+    final liters = double.tryParse(_litersController.text);
+    final price = double.tryParse(_pricePerLiterController.text);
+    final total = double.tryParse(_totalPriceController.text);
+    _isRecalculating = true;
+    if (liters != null && price != null && _totalPriceController.text.isEmpty) {
+      _totalPriceController.text = (liters * price).toStringAsFixed(2);
+    } else if (liters != null && total != null &&
+        _pricePerLiterController.text.isEmpty) {
+      _pricePerLiterController.text = (total / liters).toStringAsFixed(2);
+    } else if (price != null && total != null && _litersController.text.isEmpty) {
+      _litersController.text = (total / price).toStringAsFixed(2);
+    }
+    _isRecalculating = false;
+  }
+
+  void _submitForm() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final session = Provider.of<SessionManager>(context, listen: false);
+    final refuel = Refuel(
+      id: widget.refuel?.id,
+      vehicleId: _selectedVehicleId!,
+      fuelType: _selectedFuelType!,
+      liters: double.parse(_litersController.text),
+      pricePerLiter: double.parse(_pricePerLiterController.text),
+      totalPrice: double.parse(_totalPriceController.text),
+      mileage: int.parse(_mileageController.text),
+      note: _noteController.text.isEmpty ? null : _noteController.text,
+    );
+
+    if (widget.refuel == null) {
+      await session.addRefuel(refuel);
+    } else if (widget.refuel!.id != null) {
+      await session.updateRefuel(widget.refuel!.id!, refuel);
+    }
+
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fuel record created successfully!')),
+        SnackBar(content: Text('Fuel record saved successfully!')),
       );
+      Navigator.pop(context);
     }
   }
 }
