@@ -25,6 +25,10 @@ class _AddScreenState extends State<AddScreen> {
   final TextEditingController _mileageController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
 
+  final FocusNode _litersFocus = FocusNode();
+  final FocusNode _pricePerLiterFocus = FocusNode();
+  final FocusNode _totalPriceFocus = FocusNode();
+
   bool _initialized = false;
   bool _isRecalculating = false;
 
@@ -109,6 +113,7 @@ class _AddScreenState extends State<AddScreen> {
                 SizedBox(height: 16),
                 TextFormField(
                   controller: _litersController,
+                  focusNode: _litersFocus,
                   decoration: InputDecoration(labelText: 'Liters'),
                   keyboardType: TextInputType.number,
                   validator: _numberValidator,
@@ -116,6 +121,7 @@ class _AddScreenState extends State<AddScreen> {
                 SizedBox(height: 16),
                 TextFormField(
                   controller: _pricePerLiterController,
+                  focusNode: _pricePerLiterFocus,
                   decoration: InputDecoration(labelText: 'Price per Liter'),
                   keyboardType: TextInputType.number,
                   validator: _numberValidator,
@@ -123,6 +129,7 @@ class _AddScreenState extends State<AddScreen> {
                 SizedBox(height: 16),
                 TextFormField(
                   controller: _totalPriceController,
+                  focusNode: _totalPriceFocus,
                   decoration: InputDecoration(labelText: 'Total Price'),
                   keyboardType: TextInputType.number,
                   validator: _numberValidator,
@@ -166,18 +173,21 @@ class _AddScreenState extends State<AddScreen> {
 
   void _recalculate() {
     if (_isRecalculating) return;
+
     final liters = double.tryParse(_litersController.text);
     final price = double.tryParse(_pricePerLiterController.text);
     final total = double.tryParse(_totalPriceController.text);
+
     _isRecalculating = true;
-    if (liters != null && price != null && _totalPriceController.text.isEmpty) {
+
+    if (!_totalPriceFocus.hasFocus && liters != null && price != null) {
       _totalPriceController.text = (liters * price).toStringAsFixed(2);
-    } else if (liters != null && total != null &&
-        _pricePerLiterController.text.isEmpty) {
+    } else if (!_pricePerLiterFocus.hasFocus && liters != null && total != null) {
       _pricePerLiterController.text = (total / liters).toStringAsFixed(2);
-    } else if (price != null && total != null && _litersController.text.isEmpty) {
+    } else if (!_litersFocus.hasFocus && price != null && total != null) {
       _litersController.text = (total / price).toStringAsFixed(2);
     }
+
     _isRecalculating = false;
   }
 
@@ -207,5 +217,18 @@ class _AddScreenState extends State<AddScreen> {
       );
       Navigator.pop(context);
     }
+  }
+
+  @override
+  void dispose() {
+    _litersController.dispose();
+    _pricePerLiterController.dispose();
+    _totalPriceController.dispose();
+    _mileageController.dispose();
+    _noteController.dispose();
+    _litersFocus.dispose();
+    _pricePerLiterFocus.dispose();
+    _totalPriceFocus.dispose();
+    super.dispose();
   }
 }
