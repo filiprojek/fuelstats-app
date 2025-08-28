@@ -105,6 +105,11 @@ class _MainNavigationState extends State<MainNavigation> {
             setState(() => _currentIndex = 5);
           });
         },
+        onSignupSuccess: () {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            setState(() => _currentIndex = 0); // Go to Home
+          });
+        },
       ),
     ];
 

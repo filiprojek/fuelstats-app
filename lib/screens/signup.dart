@@ -1,8 +1,21 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+
+import '../config.dart';
+import '../services/session_manager.dart';
 
 class SignupScreen extends StatefulWidget {
   final VoidCallback onSwitchToLogin;
-  const SignupScreen({required this.onSwitchToLogin, super.key});
+  final VoidCallback onSignupSuccess;
+
+  const SignupScreen({
+    required this.onSwitchToLogin,
+    required this.onSignupSuccess,
+    super.key,
+  });
 
   @override
   State<SignupScreen> createState() => _SignupScreenState();
@@ -14,13 +27,59 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _signup() {
+  Future<void> _signup() async {
     if (_formKey.currentState!.validate()) {
       final username = _usernameController.text;
       final email = _emailController.text;
       final password = _passwordController.text;
-      // TODO: Replace with actual signup logic
-      print('Signing up with $username, $email, $password');
+
+      try {
+        final signupResponse = await http.post(
+          Uri.parse('$apiBaseUrl/api/v1/auth/signup'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'username': username,
+            'email': email,
+            'password': password,
+          }),
+        );
+
+        if (signupResponse.statusCode == 200 || signupResponse.statusCode == 201) {
+          final signinResponse = await http.post(
+            Uri.parse('$apiBaseUrl/api/v1/auth/signin'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'email': email, 'password': password}),
+          );
+
+          if (signinResponse.statusCode == 200) {
+            final data = jsonDecode(signinResponse.body);
+            final token = data['token'];
+            final name = data['user']?['username'] ?? data['username'] ?? username;
+
+            await Provider.of<SessionManager>(context, listen: false).login(
+              token: token,
+              email: email,
+              name: name,
+            );
+
+            widget.onSignupSuccess();
+          } else {
+            final data = jsonDecode(signinResponse.body);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(data['message'] ?? 'Sign in failed')),
+            );
+          }
+        } else {
+          final data = jsonDecode(signupResponse.body);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data['message'] ?? 'Signup failed')),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Signup error: $e')),
+        );
+      }
     }
   }
 
