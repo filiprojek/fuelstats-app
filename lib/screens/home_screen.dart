@@ -106,6 +106,10 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  const Text('Refuel stats',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -158,10 +162,6 @@ class HomeScreen extends StatelessWidget {
                   }),
                   if (lastRefuels.isNotEmpty) ...[
                     const SizedBox(height: 24),
-                    const Text('Refuel stats',
-                        style:
-                            TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
                     Text('Gas price (last ${lastRefuels.length} refuels)',
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
