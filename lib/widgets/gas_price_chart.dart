@@ -11,8 +11,12 @@ class GasPriceChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final spots = <FlSpot>[];
+    final labels = <String>[];
     for (var i = 0; i < refuels.length; i++) {
-      spots.add(FlSpot(i.toDouble(), refuels[i].pricePerLiter));
+      final refuel = refuels[i];
+      spots.add(FlSpot(spots.length.toDouble(), refuel.pricePerLiter));
+      final date = refuel.createdAt;
+      labels.add(date != null ? '${date.month}/${date.day}' : '');
     }
 
     return LineChart(
@@ -32,6 +36,11 @@ class GasPriceChart extends StatelessWidget {
             tooltipMargin: 40,
             fitInsideHorizontally: true,
             fitInsideVertically: true,
+            getTooltipItems: (spots) => spots
+                .map((s) => LineTooltipItem(
+                    s.y.toStringAsFixed(2),
+                    const TextStyle(color: Colors.white)))
+                .toList(),
           ),
         ),
         titlesData: FlTitlesData(
@@ -55,16 +64,22 @@ class GasPriceChart extends StatelessWidget {
             axisNameSize: 24,
             axisNameWidget: const Padding(
               padding: EdgeInsets.only(top: 8),
-              child: Text('Refuel'),
+              child: Text('Date'),
             ),
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 28,
-              getTitlesWidget: (value, meta) => Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text('${value.toInt() + 1}',
-                    style: const TextStyle(fontSize: 10)),
-              ),
+              reservedSize: 36,
+              getTitlesWidget: (value, meta) {
+                final index = value.toInt();
+                if (index < 0 || index >= labels.length) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(labels[index],
+                      style: const TextStyle(fontSize: 10)),
+                );
+              },
             ),
           ),
           rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
