@@ -79,7 +79,11 @@ class _MainNavigationState extends State<MainNavigation> {
 
       final screens = [
       HomeScreen(),
-      AddScreen(),
+      AddScreen(
+        onSaved: () {
+          setState(() => _currentIndex = 0);
+        },
+      ),
       VehiclesScreen(),
       HistoryScreen(),
       UserSettingsScreen(

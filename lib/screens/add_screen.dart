@@ -7,7 +7,9 @@ import '../services/session_manager.dart';
 
 class AddScreen extends StatefulWidget {
   final Refuel? refuel;
-  AddScreen({this.refuel});
+  final VoidCallback? onSaved;
+
+  AddScreen({this.refuel, this.onSaved});
 
   @override
   _AddScreenState createState() => _AddScreenState();
@@ -216,20 +218,21 @@ class _AddScreenState extends State<AddScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Fuel record saved successfully!')),
     );
+    _formKey.currentState?.reset();
+    setState(() {
+      _selectedVehicleId = session.defaultVehicle?.id;
+      _selectedFuelType = session.defaultVehicle?.fuelType;
+    });
+    _litersController.clear();
+    _pricePerLiterController.clear();
+    _totalPriceController.clear();
+    _mileageController.clear();
+    _noteController.clear();
 
     if (Navigator.canPop(context)) {
       Navigator.pop(context);
     } else {
-      _formKey.currentState?.reset();
-      setState(() {
-        _selectedVehicleId = session.defaultVehicle?.id;
-        _selectedFuelType = session.defaultVehicle?.fuelType;
-      });
-      _litersController.clear();
-      _pricePerLiterController.clear();
-      _totalPriceController.clear();
-      _mileageController.clear();
-      _noteController.clear();
+      widget.onSaved?.call();
     }
   }
 
