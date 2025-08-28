@@ -112,7 +112,7 @@ class HomeScreen extends StatelessWidget {
                     crossAxisCount: 2,
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
-                    childAspectRatio: 3,
+                    childAspectRatio: 2.2,
                     children: [
                       StatCard(
                         title: 'Avg consumption (all time)',
@@ -152,7 +152,7 @@ class HomeScreen extends StatelessWidget {
                       crossAxisCount: 2,
                       crossAxisSpacing: 8,
                       mainAxisSpacing: 8,
-                      childAspectRatio: 3,
+                      childAspectRatio: 2.2,
                       children: kmCards,
                     );
                   }),
@@ -167,7 +167,7 @@ class HomeScreen extends StatelessWidget {
                             fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     SizedBox(
-                      height: 200,
+                      height: 220,
                       child: GasPriceChart(refuels: lastRefuels),
                     ),
                     if (lastRefuels.length > 1) ...[
@@ -177,7 +177,7 @@ class HomeScreen extends StatelessWidget {
                               fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
                       SizedBox(
-                        height: 200,
+                        height: 220,
                         child: ConsumptionChart(refuels: lastRefuels),
                       ),
                     ],
