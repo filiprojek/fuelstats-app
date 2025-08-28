@@ -31,7 +31,7 @@ class HistoryScreen extends StatelessWidget {
     return TableRow(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
+          padding: const EdgeInsets.only(top: 2, bottom: 2, right: 16),
           child: Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
         ),
         Padding(
