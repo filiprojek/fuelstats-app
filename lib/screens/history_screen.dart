@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -272,21 +273,41 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   context: context,
                                   builder: (context) => AlertDialog(
                                     title: Text('Service Details'),
-                                    content: Table(
-                                      columnWidths: {0: IntrinsicColumnWidth()},
-                                      children: [
-                                        _detailRow('Type', s.displayType),
-                                        _detailRow('Cost', _formatCurrency(s.cost)),
-                                        _detailRow('Mileage', '${_formatNumber(s.mileage)} km'),
-                                        if (s.shop != null && s.shop!.isNotEmpty)
-                                          _detailRow('Shop', s.shop!),
-                                        _detailRow('Self service', s.selfService ? 'Yes' : 'No'),
-                                        if (s.note != null && s.note!.isNotEmpty)
-                                          _detailRow('Note', s.note!),
-                                        _detailRow('Date', _formatDateTime(s.date)),
-                                        if (s.photos.isNotEmpty)
-                                          _detailRow('Photos', s.photos.length.toString()),
-                                      ],
+                                    content: SingleChildScrollView(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Table(
+                                            columnWidths: {0: IntrinsicColumnWidth()},
+                                            children: [
+                                              _detailRow('Type', s.displayType),
+                                              _detailRow('Cost', _formatCurrency(s.cost)),
+                                              _detailRow('Mileage', '${_formatNumber(s.mileage)} km'),
+                                              if (s.shop != null && s.shop!.isNotEmpty)
+                                                _detailRow('Shop', s.shop!),
+                                              _detailRow('Self service', s.selfService ? 'Yes' : 'No'),
+                                              if (s.note != null && s.note!.isNotEmpty)
+                                                _detailRow('Note', s.note!),
+                                              _detailRow('Date', _formatDateTime(s.date)),
+                                            ],
+                                          ),
+                                          if (s.photos.isNotEmpty) ...[
+                                            SizedBox(height: 12),
+                                            Wrap(
+                                              spacing: 8,
+                                              runSpacing: 8,
+                                              children: s.photos
+                                                  .map((p) => Image.memory(
+                                                        base64Decode(p),
+                                                        width: 100,
+                                                        height: 100,
+                                                        fit: BoxFit.cover,
+                                                      ))
+                                                  .toList(),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
                                     ),
                                     actions: [
                                       TextButton(
