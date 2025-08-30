@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img;
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../models/service.dart';
@@ -30,7 +35,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
   final TextEditingController _shopController = TextEditingController();
   _ServicePerformer _performer = _ServicePerformer.shop;
   final TextEditingController _noteController = TextEditingController();
-  final List<TextEditingController> _photoControllers = [];
+  final List<Uint8List> _photos = [];
   DateTime? _selectedDate;
   final TextEditingController _dateController = TextEditingController();
 
@@ -57,8 +62,9 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       }
       if (s.note != null) _noteController.text = s.note!;
       for (final p in s.photos) {
-        final c = TextEditingController(text: p);
-        _photoControllers.add(c);
+        try {
+          _photos.add(base64Decode(p));
+        } catch (_) {}
       }
       _selectedDate = s.date;
       if (s.date != null) {
@@ -173,16 +179,41 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
                 controller: _noteController,
                 decoration: InputDecoration(labelText: 'Note'),
               ),
+              if (_photos.isNotEmpty) ...[
+                SizedBox(height: 16),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: List.generate(_photos.length, (i) {
+                    return Stack(
+                      children: [
+                        Image.memory(
+                          _photos[i],
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        ),
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: GestureDetector(
+                            onTap: () => setState(() => _photos.removeAt(i)),
+                            child: Container(
+                              color: Colors.black54,
+                              child: Icon(Icons.close, color: Colors.white, size: 20),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
+                ),
+              ],
               SizedBox(height: 16),
-              ..._buildPhotoFields(),
               TextButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _photoControllers.add(TextEditingController());
-                  });
-                },
+                onPressed: _pickPhoto,
                 icon: Icon(Icons.add_a_photo),
-                label: Text('Add Photo URL'),
+                label: Text('Add Photo'),
               ),
               SizedBox(height: 16),
               TextFormField(
@@ -233,16 +264,39 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
     return form;
   }
 
-  List<Widget> _buildPhotoFields() {
-    return List<Widget>.generate(_photoControllers.length, (i) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 8.0),
-        child: TextFormField(
-          controller: _photoControllers[i],
-          decoration: InputDecoration(labelText: 'Photo URL ${i + 1}'),
+  Future<void> _pickPhoto() async {
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: Icon(Icons.camera_alt),
+              title: Text('Take Photo'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: Icon(Icons.photo_library),
+              title: Text('Choose from Gallery'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
         ),
-      );
-    });
+      ),
+    );
+    if (source == null) return;
+    final file = await picker.pickImage(source: source, imageQuality: 85);
+    if (file == null) return;
+    var bytes = await file.readAsBytes();
+    // Optional compression to keep payload small
+    if (bytes.length > 100 * 1024) {
+      final decoded = img.decodeImage(bytes);
+      if (decoded != null) {
+        bytes = Uint8List.fromList(img.encodeJpg(decoded, quality: 80));
+      }
+    }
+    setState(() => _photos.add(bytes));
   }
 
   String? _numberValidator(String? value) {
@@ -269,7 +323,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       shop: _performer == _ServicePerformer.shop ? _shopController.text : null,
       selfService: _performer == _ServicePerformer.self,
       note: _noteController.text.isEmpty ? null : _noteController.text,
-      photos: _photoControllers.map((c) => c.text).where((p) => p.isNotEmpty).toList(),
+      photos: _photos.map((b) => base64Encode(b)).toList(),
       date: _selectedDate,
     );
 
@@ -301,9 +355,6 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
     _shopController.dispose();
     _noteController.dispose();
     _dateController.dispose();
-    for (final c in _photoControllers) {
-      c.dispose();
-    }
     super.dispose();
   }
 }
