@@ -327,22 +327,28 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       date: _selectedDate,
     );
 
+    bool success = false;
     if (widget.service == null) {
-      await session.addService(service);
+      success = await session.addService(service);
     } else if (widget.service!.id != null) {
-      await session.updateService(widget.service!.id!, service);
+      success = await session.updateService(widget.service!.id!, service);
     }
 
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Service record saved successfully!')),
+      SnackBar(
+          content: Text(success
+              ? 'Service record saved successfully!'
+              : 'Failed to save service record.')),
     );
 
-    if (Navigator.canPop(context)) {
-      Navigator.pop(context);
-    } else {
-      widget.onSaved?.call();
+    if (success) {
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      } else {
+        widget.onSaved?.call();
+      }
     }
   }
 

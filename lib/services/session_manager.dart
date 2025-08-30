@@ -289,7 +289,7 @@ class SessionManager extends ChangeNotifier {
     } catch (_) {}
   }
 
-  Future<void> addService(ServiceRecord service) async {
+  Future<bool> addService(ServiceRecord service) async {
     try {
       final response = await http.post(
         Uri.parse('$apiBaseUrl/api/v1/services'),
@@ -300,11 +300,13 @@ class SessionManager extends ChangeNotifier {
         final data = jsonDecode(response.body);
         _services.add(ServiceRecord.fromApi(data));
         notifyListeners();
+        return true;
       }
     } catch (_) {}
+    return false;
   }
 
-  Future<void> updateService(String id, ServiceRecord service) async {
+  Future<bool> updateService(String id, ServiceRecord service) async {
     try {
       final response = await http.put(
         Uri.parse('$apiBaseUrl/api/v1/services/$id'),
@@ -318,8 +320,10 @@ class SessionManager extends ChangeNotifier {
           _services[idx] = ServiceRecord.fromApi(data);
           notifyListeners();
         }
+        return true;
       }
     } catch (_) {}
+    return false;
   }
 
   Future<void> removeService(String id) async {
