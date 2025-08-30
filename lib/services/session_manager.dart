@@ -8,6 +8,7 @@ import '../config.dart';
 
 import '../models/vehicle.dart';
 import '../models/refuel.dart';
+import '../models/service.dart';
 
 class SessionManager extends ChangeNotifier {
   static final SessionManager _instance = SessionManager._internal();
@@ -21,6 +22,7 @@ class SessionManager extends ChangeNotifier {
 
   List<Vehicle> _vehicles = [];
   List<Refuel> _refuels = [];
+  List<ServiceRecord> _services = [];
 
   bool get isLoggedIn => _loggedIn;
   String? get token => _token;
@@ -29,6 +31,7 @@ class SessionManager extends ChangeNotifier {
 
   List<Vehicle> get vehicles => List.unmodifiable(_vehicles);
   List<Refuel> get refuels => List.unmodifiable(_refuels);
+  List<ServiceRecord> get services => List.unmodifiable(_services);
   Vehicle? get defaultVehicle {
     try {
       return _vehicles.firstWhere((v) => v.isDefault);
@@ -50,6 +53,7 @@ class SessionManager extends ChangeNotifier {
         _loggedIn = true;
         await fetchVehicles();
         await fetchRefuels();
+        await fetchServices();
         notifyListeners();
       } else {
         await logout();
@@ -79,6 +83,7 @@ class SessionManager extends ChangeNotifier {
 
     await fetchVehicles();
     await fetchRefuels();
+    await fetchServices();
     notifyListeners();
   }
 
@@ -91,6 +96,7 @@ class SessionManager extends ChangeNotifier {
     _name = null;
     _vehicles.clear();
     _refuels.clear();
+    _services.clear();
     _loggedIn = false;
     notifyListeners();
   }
@@ -263,6 +269,67 @@ class SessionManager extends ChangeNotifier {
       );
       if (response.statusCode == 200 || response.statusCode == 204) {
         _refuels.removeWhere((r) => r.id == id);
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  // Service records
+  Future<void> fetchServices() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$apiBaseUrl/api/v1/services'),
+        headers: _authHeaders(),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        _services = data.map((e) => ServiceRecord.fromApi(e)).toList();
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> addService(ServiceRecord service) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiBaseUrl/api/v1/services'),
+        headers: _authHeaders(),
+        body: jsonEncode(service.toApiMap()),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        _services.add(ServiceRecord.fromApi(data));
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> updateService(String id, ServiceRecord service) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$apiBaseUrl/api/v1/services/$id'),
+        headers: _authHeaders(),
+        body: jsonEncode(service.toApiMap()),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final idx = _services.indexWhere((s) => s.id == id);
+        if (idx != -1) {
+          _services[idx] = ServiceRecord.fromApi(data);
+          notifyListeners();
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> removeService(String id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$apiBaseUrl/api/v1/services/$id'),
+        headers: _authHeaders(),
+      );
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        _services.removeWhere((s) => s.id == id);
         notifyListeners();
       }
     } catch (_) {}
