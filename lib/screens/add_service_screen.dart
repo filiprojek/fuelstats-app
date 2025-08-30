@@ -5,6 +5,8 @@ import '../models/service.dart';
 import '../models/vehicle.dart';
 import '../services/session_manager.dart';
 
+enum _ServicePerformer { shop, self }
+
 class AddServiceScreen extends StatefulWidget {
   final ServiceRecord? service;
   final VoidCallback? onSaved;
@@ -26,7 +28,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
   final TextEditingController _costController = TextEditingController();
   final TextEditingController _mileageController = TextEditingController();
   final TextEditingController _shopController = TextEditingController();
-  bool _selfService = false;
+  _ServicePerformer _performer = _ServicePerformer.shop;
   final TextEditingController _noteController = TextEditingController();
   final List<TextEditingController> _photoControllers = [];
   DateTime? _selectedDate;
@@ -47,8 +49,12 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       if (s.itemName != null) _itemNameController.text = s.itemName!;
       _costController.text = s.cost.toString();
       _mileageController.text = s.mileage.toString();
-      if (s.shop != null) _shopController.text = s.shop!;
-      _selfService = s.selfService;
+      if (s.selfService) {
+        _performer = _ServicePerformer.self;
+      } else {
+        _performer = _ServicePerformer.shop;
+        if (s.shop != null) _shopController.text = s.shop!;
+      }
       if (s.note != null) _noteController.text = s.note!;
       for (final p in s.photos) {
         final c = TextEditingController(text: p);
@@ -138,16 +144,30 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
                 validator: _numberValidator,
               ),
               SizedBox(height: 16),
-              TextFormField(
-                controller: _shopController,
-                decoration: InputDecoration(labelText: 'Shop'),
+              RadioListTile<_ServicePerformer>(
+                value: _ServicePerformer.shop,
+                groupValue: _performer,
+                title: Text('Performed at shop'),
+                onChanged: (v) => setState(() => _performer = v!),
               ),
-              SizedBox(height: 16),
-              SwitchListTile(
-                value: _selfService,
+              RadioListTile<_ServicePerformer>(
+                value: _ServicePerformer.self,
+                groupValue: _performer,
                 title: Text('Self Service'),
-                onChanged: (v) => setState(() => _selfService = v),
+                onChanged: (v) => setState(() {
+                  _performer = v!;
+                  _shopController.clear();
+                }),
               ),
+              if (_performer == _ServicePerformer.shop) ...[
+                SizedBox(height: 16),
+                TextFormField(
+                  controller: _shopController,
+                  decoration: InputDecoration(labelText: 'Shop'),
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Enter shop name' : null,
+                ),
+              ],
               SizedBox(height: 16),
               TextFormField(
                 controller: _noteController,
@@ -246,8 +266,8 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
           : _itemNameController.text,
       cost: double.parse(_costController.text),
       mileage: int.parse(_mileageController.text),
-      shop: _shopController.text.isEmpty ? null : _shopController.text,
-      selfService: _selfService,
+      shop: _performer == _ServicePerformer.shop ? _shopController.text : null,
+      selfService: _performer == _ServicePerformer.self,
       note: _noteController.text.isEmpty ? null : _noteController.text,
       photos: _photoControllers.map((c) => c.text).where((p) => p.isNotEmpty).toList(),
       date: _selectedDate,
