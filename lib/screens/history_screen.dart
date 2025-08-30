@@ -10,6 +10,7 @@ import '../models/vehicle.dart';
 import '../services/session_manager.dart';
 import 'add_screen.dart';
 import 'add_service_screen.dart';
+import '../config.dart';
 
 class HistoryScreen extends StatefulWidget {
   @override
@@ -296,14 +297,31 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                             Wrap(
                                               spacing: 8,
                                               runSpacing: 8,
-                                              children: s.photos
-                                                  .map((p) => Image.memory(
-                                                        base64Decode(p),
-                                                        width: 100,
-                                                        height: 100,
-                                                        fit: BoxFit.cover,
-                                                      ))
-                                                  .toList(),
+                                              children: s.photos.map((p) {
+                                                Widget img;
+                                                if (p.startsWith('http') || p.startsWith('/')) {
+                                                  final url =
+                                                      p.startsWith('http') ? p : '$apiBaseUrl$p';
+                                                  img = Image.network(
+                                                    url,
+                                                    width: 100,
+                                                    height: 100,
+                                                    fit: BoxFit.cover,
+                                                  );
+                                                } else {
+                                                  try {
+                                                    img = Image.memory(
+                                                      base64Decode(p),
+                                                      width: 100,
+                                                      height: 100,
+                                                      fit: BoxFit.cover,
+                                                    );
+                                                  } catch (_) {
+                                                    img = SizedBox.shrink();
+                                                  }
+                                                }
+                                                return img;
+                                              }).toList(),
                                             ),
                                           ],
                                         ],
