@@ -65,6 +65,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  void _showFullImage(BuildContext context, String p) {
+    Widget img;
+    if (p.startsWith('http') || p.startsWith('/')) {
+      final url = p.startsWith('http') ? p : '$apiBaseUrl$p';
+      img = Image.network(url);
+    } else {
+      try {
+        img = Image.memory(base64Decode(p));
+      } catch (_) {
+        return;
+      }
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: Colors.black,
+          body: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Center(child: InteractiveViewer(child: img)),
+          ),
+        ),
+      ),
+    );
+  }
+
   bool _matchesSearch(Refuel? r, ServiceRecord? s) {
     final q = _search.toLowerCase();
     if (q.isEmpty) return true;
@@ -320,7 +346,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                                     img = SizedBox.shrink();
                                                   }
                                                 }
-                                                return img;
+                                                return GestureDetector(
+                                                  onTap: () => _showFullImage(context, p),
+                                                  child: img,
+                                                );
                                               }).toList(),
                                             ),
                                           ],

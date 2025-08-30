@@ -63,7 +63,8 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       if (s.note != null) _noteController.text = s.note!;
       for (final p in s.photos) {
         try {
-          _photos.add(base64Decode(p));
+          final data = p.contains(',') ? p.split(',').last : p;
+          _photos.add(base64Decode(data));
         } catch (_) {}
       }
       _selectedDate = s.date;
@@ -286,15 +287,19 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
       ),
     );
     if (source == null) return;
-    final file = await picker.pickImage(source: source, imageQuality: 85);
+    final file = await picker.pickImage(source: source);
     if (file == null) return;
     var bytes = await file.readAsBytes();
-    // Optional compression to keep payload small
-    if (bytes.length > 100 * 1024) {
-      final decoded = img.decodeImage(bytes);
-      if (decoded != null) {
-        bytes = Uint8List.fromList(img.encodeJpg(decoded, quality: 80));
+    final decoded = img.decodeImage(bytes);
+    if (decoded != null) {
+      const maxDim = 800;
+      img.Image resized;
+      if (decoded.width > decoded.height) {
+        resized = img.copyResize(decoded, width: maxDim);
+      } else {
+        resized = img.copyResize(decoded, height: maxDim);
       }
+      bytes = Uint8List.fromList(img.encodeJpg(resized, quality: 70));
     }
     setState(() => _photos.add(bytes));
   }
