@@ -160,11 +160,26 @@ class _AddScreenState extends State<AddScreen> {
                       ? 'Create Fuel Record'
                       : 'Update Fuel Record'),
                 ),
+                if (!widget.standalone) ...[
+                  SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AddServiceScreen(standalone: true),
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.build),
+                    label: Text('Add Service Record'),
+                  ),
                 ],
-              ),
+              ],
             ),
           ),
-        );
+        ),
+      );
 
     if (widget.standalone) {
       return Scaffold(
@@ -177,26 +192,7 @@ class _AddScreenState extends State<AddScreen> {
       );
     }
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 16.0, left: 16, right: 16),
-          child: ElevatedButton.icon(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => AddServiceScreen(standalone: true),
-                ),
-              );
-            },
-            icon: Icon(Icons.build),
-            label: Text('Add Service Record'),
-          ),
-        ),
-        Expanded(child: form),
-      ],
-    );
+    return form;
   }
 
   String? _numberValidator(String? value) {
