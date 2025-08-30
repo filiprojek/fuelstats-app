@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/vehicle.dart';
 import '../models/refuel.dart';
 import '../services/session_manager.dart';
+import 'add_service_screen.dart';
 
 class AddScreen extends StatefulWidget {
   final Refuel? refuel;
@@ -159,17 +160,33 @@ class _AddScreenState extends State<AddScreen> {
                       ? 'Create Fuel Record'
                       : 'Update Fuel Record'),
                 ),
+                if (!widget.standalone) ...[
+                  SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AddServiceScreen(standalone: true),
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.build),
+                    label: Text('Add Service Record'),
+                  ),
                 ],
-              ),
+              ],
             ),
           ),
-        );
+        ),
+      );
 
     if (widget.standalone) {
       return Scaffold(
         appBar: AppBar(
-          title: Text(
-              widget.refuel == null ? 'Add Refuel Record' : 'Edit Refuel Record'),
+          title: Text(widget.refuel == null
+              ? 'Add Refuel Record'
+              : 'Edit Refuel Record'),
         ),
         body: form,
       );
