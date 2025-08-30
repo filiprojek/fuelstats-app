@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../models/refuel.dart';
 import '../models/service.dart';
+import '../models/vehicle.dart';
 import '../services/session_manager.dart';
 import 'add_screen.dart';
 import 'add_service_screen.dart';
