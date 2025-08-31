@@ -2,6 +2,16 @@
 
 A new Flutter project.
 
+## CI/CD
+
+A GitHub Actions workflow builds a profile APK on each push to the `dev`
+branch. The workflow reads the version name from `pubspec.yaml`, uses the
+repository's commit count as the build number, and uploads the resulting APK
+as a build artifact.
+
+The app's User Settings screen displays the current version and build number
+retrieved at runtime.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
