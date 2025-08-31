@@ -58,9 +58,9 @@ class _MainNavigationState extends State<MainNavigation> {
       case 4:
         return Text("Settings");
       case 5:
-        return Text("Login");
+        return Text(""); // Empty title on login
       case 6:
-        return Text("Sign up");
+        return Text(""); // Empty title on signup
       default:
         return Text("Fuel Stats");
     }
