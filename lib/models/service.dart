@@ -156,6 +156,7 @@ class ServiceRecord {
 enum ServiceType {
   airFilter,
   oilFilter,
+  fuelFilter,
   cabinFilter,
   motorOil,
   brakePadFront,
@@ -174,6 +175,8 @@ extension ServiceTypeX on ServiceType {
         return 'Air Filter';
       case ServiceType.oilFilter:
         return 'Oil Filter';
+      case ServiceType.fuelFilter:
+        return 'Fuel Filter';
       case ServiceType.cabinFilter:
         return 'Cabin Filter';
       case ServiceType.motorOil:
@@ -201,6 +204,8 @@ extension ServiceTypeX on ServiceType {
         return 'air_filter';
       case ServiceType.oilFilter:
         return 'oil_filter';
+      case ServiceType.fuelFilter:
+        return 'fuel_filter';
       case ServiceType.cabinFilter:
         return 'cabin_filter';
       case ServiceType.motorOil:
