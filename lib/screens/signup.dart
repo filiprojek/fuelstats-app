@@ -91,25 +91,27 @@ class _SignupScreenState extends State<SignupScreen> {
         padding: const EdgeInsets.all(24.0),
         child: Form(
           key: _formKey,
-          child: Center(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 40),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset(
                     'assets/icon/app_icon.png',
                     width: 100,
                     height: 100,
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Create your Fuel Stats account',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Create your Fuel Stats account',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 32),
+                ),
+                const SizedBox(height: 32),
                   TextFormField(
                     controller: _usernameController,
                     decoration: InputDecoration(
@@ -178,7 +180,6 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 }
