@@ -1,26 +1,38 @@
-# android_fuelstats
+# Fuel Stats
 
-A new Flutter project.
+Fuel Stats is a Flutter application for tracking vehicle fuel consumption and service history. It lets you record refuels and maintenance, manage multiple vehicles, and visualise trends in cost and efficiency.
 
-## CI/CD
+## Features
+- Email-based authentication with login and sign-up flows
+- Manage vehicles and choose a default one
+- Log refuels with liters, price, mileage and notes
+- Record maintenance/service events, including cost and optional photos
+- Stats dashboard with consumption figures and kilometers driven
+- Charts for gas price and fuel consumption trends
 
-A GitHub Actions workflow builds a profile APK on each push to the `dev`
-branch. The workflow reads the version name from `pubspec.yaml`, uses the
-repository's commit count as the build number, and uploads the resulting APK
-as a build artifact.
+## Platform Support
+The app is tested only on Android. A web build should also work, but iOS, macOS, Windows, and Linux have not been tested.
 
-The app's User Settings screen displays the current version and build number
-retrieved at runtime.
+## Configuration
+The app communicates with a Node.js backend maintained in a separate project: [Fuel Stats Server](https://github.com/filiprojek/fuelstats-server).
+Provide the server's base URL at build time using a compile-time define:
+
+```bash
+flutter run --dart-define=API_BASE_URL=https://api.example.com
+```
 
 ## Getting Started
+1. Install [Flutter](https://flutter.dev) (3.7 or later).
+2. Fetch dependencies:
+   ```bash
+   flutter pub get
+   ```
+3. Launch the application:
+   ```bash
+   flutter run --dart-define=API_BASE_URL=http://localhost:6060
+   ```
 
-This project is a starting point for a Flutter application.
+## CI/CD
+A GitHub Actions workflow builds a profile APK on each push to the `dev` branch. The workflow reads the version from `pubspec.yaml`, uses the repository commit count as the build number, and uploads the APK as an artifact.
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
