@@ -76,6 +76,12 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Image.asset(
+                    'assets/icon/app_icon.png',
+                    width: 100,
+                    height: 100,
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     'Log in to Fuel Stats',
                     style: TextStyle(
