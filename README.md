@@ -1,6 +1,6 @@
-# FuelStats
+# Fuel Stats
 
-FuelStats is a Flutter application for tracking vehicle fuel consumption and service history. It lets you record refuels and maintenance, manage multiple vehicles, and visualise trends in cost and efficiency.
+Fuel Stats is a Flutter application for tracking vehicle fuel consumption and service history. It lets you record refuels and maintenance, manage multiple vehicles, and visualise trends in cost and efficiency.
 
 ## Features
 - Email-based authentication with login and sign-up flows
@@ -10,8 +10,11 @@ FuelStats is a Flutter application for tracking vehicle fuel consumption and ser
 - Stats dashboard with consumption figures and kilometers driven
 - Charts for gas price and fuel consumption trends
 
+## Platform Support
+The app is tested only on Android. A web build should also work, but iOS, macOS, Windows, and Linux have not been tested.
+
 ## Configuration
-The app communicates with a Node.js backend maintained in a separate project: [FuelStats Server](https://github.com/filiprojek/fuelstats-server).
+The app communicates with a Node.js backend maintained in a separate project: [Fuel Stats Server](https://github.com/filiprojek/fuelstats-server).
 Provide the server's base URL at build time using a compile-time define:
 
 ```bash
