@@ -9,11 +9,11 @@ import '../services/session_manager.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback onSwitchToSignup;
-  final VoidCallback onLoginSuccess; // ✅ ADD THIS
+  final VoidCallback onLoginSuccess;
 
   const LoginScreen({
     required this.onSwitchToSignup,
-    required this.onLoginSuccess, // ✅ ADD THIS
+    required this.onLoginSuccess,
     super.key,
   });
 
