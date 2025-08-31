@@ -97,7 +97,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image.asset(
-                    'web/icons/Icon-192.png',
+                    'assets/icon/app_icon.png',
                     width: 100,
                     height: 100,
                   ),
