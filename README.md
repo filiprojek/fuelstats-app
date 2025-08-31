@@ -9,16 +9,14 @@ FuelStats is a Flutter application for tracking vehicle fuel consumption and ser
 - Record maintenance/service events, including cost and optional photos
 - Stats dashboard with consumption figures and kilometers driven
 - Charts for gas price and fuel consumption trends
-- User settings screen showing app version and build number
 
 ## Configuration
-The app communicates with a backend API. Provide its base URL at build time using a compile-time define:
+The app communicates with a Node.js backend maintained in a separate project: [FuelStats Server](https://github.com/filiprojek/fuelstats-server).
+Provide the server's base URL at build time using a compile-time define:
 
 ```bash
 flutter run --dart-define=API_BASE_URL=https://api.example.com
 ```
-
-If not supplied, the app defaults to `http://10.123.0.102:6060`.
 
 ## Getting Started
 1. Install [Flutter](https://flutter.dev) (3.7 or later).
@@ -26,11 +24,7 @@ If not supplied, the app defaults to `http://10.123.0.102:6060`.
    ```bash
    flutter pub get
    ```
-3. Run tests:
-   ```bash
-   flutter test
-   ```
-4. Launch the application:
+3. Launch the application:
    ```bash
    flutter run --dart-define=API_BASE_URL=http://localhost:6060
    ```
@@ -38,6 +32,4 @@ If not supplied, the app defaults to `http://10.123.0.102:6060`.
 ## CI/CD
 A GitHub Actions workflow builds a profile APK on each push to the `dev` branch. The workflow reads the version from `pubspec.yaml`, uses the repository commit count as the build number, and uploads the APK as an artifact.
 
-## Tests
-Widget tests reside in the `test/` directory and can be executed with `flutter test`.
 
