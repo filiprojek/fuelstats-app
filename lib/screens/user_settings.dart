@@ -10,7 +10,7 @@ class UserSettingsScreen extends StatelessWidget {
 
   Future<String> _getVersion() async {
     final info = await PackageInfo.fromPlatform();
-    return 'Version: ${info.version}';
+    return 'Version: ${info.version}+${info.buildNumber}';
   }
 
   @override
