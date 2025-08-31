@@ -1,0 +1,43 @@
+name: Build Profile APK
+
+on:
+  push:
+    branches: ["dev"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Determine version
+        run: |
+          VERSION_NAME=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          BUILD_NUMBER=$(git rev-list --count HEAD)
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build profile APK
+        run: flutter build apk --profile --build-name="$VERSION_NAME" --build-number="$BUILD_NUMBER"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: profile-apk
+          path: build/app/outputs/flutter-apk/app-profile.apk
