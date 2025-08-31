@@ -94,7 +94,14 @@ class _SignupScreenState extends State<SignupScreen> {
           child: Center(
             child: SingleChildScrollView(
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Image.asset(
+                    'web/icons/Icon-192.png',
+                    width: 100,
+                    height: 100,
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     'Create your Fuel Stats account',
                     style: TextStyle(
