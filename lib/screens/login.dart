@@ -1,14 +1,19 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+
+import '../config.dart';
 import '../services/session_manager.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback onSwitchToSignup;
-  final VoidCallback onLoginSuccess; // ✅ ADD THIS
+  final VoidCallback onLoginSuccess;
 
   const LoginScreen({
     required this.onSwitchToSignup,
-    required this.onLoginSuccess, // ✅ ADD THIS
+    required this.onLoginSuccess,
     super.key,
   });
 
@@ -21,21 +26,39 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _login() {
+  Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text;
       final password = _passwordController.text;
 
-      if (email == "test@test.com" && password == "Test1234") {
-        Provider.of<SessionManager>(context, listen: false).login(
-          token: "dummy_token",
-          email: email,
-          name: "John Doe",
+      try {
+        final response = await http.post(
+          Uri.parse('$apiBaseUrl/api/v1/auth/signin'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'email': email, 'password': password}),
         );
-        widget.onLoginSuccess(); // ✅ FIXED: now defined
-      } else {
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final token = data['token'];
+          final name = data['user']?['username'] ?? data['username'];
+
+          await Provider.of<SessionManager>(context, listen: false).login(
+            token: token,
+            email: email,
+            name: name,
+          );
+
+          widget.onLoginSuccess();
+        } else {
+          final data = jsonDecode(response.body);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data['message'] ?? 'Login failed')),
+          );
+        }
+      } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Invalid credentials")),
+          SnackBar(content: Text('Login error: $e')),
         );
       }
     }
@@ -48,19 +71,27 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: const EdgeInsets.all(24.0),
         child: Form(
           key: _formKey,
-          child: Center(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Log in to Fuel Stats',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 40),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset(
+                    'assets/icon/app_icon.png',
+                    width: 100,
+                    height: 100,
                   ),
-                  const SizedBox(height: 32),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Log in to Fuel Stats',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 32),
                   TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
@@ -115,7 +146,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 }

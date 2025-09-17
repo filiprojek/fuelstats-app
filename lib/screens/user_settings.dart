@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-
-import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import '../services/session_manager.dart';
 
@@ -13,13 +10,14 @@ class UserSettingsScreen extends StatelessWidget {
 
   Future<String> _getVersion() async {
     final info = await PackageInfo.fromPlatform();
-    return 'Version: ${info.version}';
+    return 'Version: ${info.version}+${info.buildNumber}';
   }
 
   @override
   Widget build(BuildContext context) {
     final session = Provider.of<SessionManager>(context);
     final userName = session.name ?? "Unknown User"; // fallback just in case
+    final userEmail = session.email ?? '';
 
     return Scaffold(
       appBar: AppBar(title: Text('User settings')),
@@ -31,6 +29,12 @@ class UserSettingsScreen extends StatelessWidget {
               userName,
               style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
             ),
+            SizedBox(height: 8),
+            if (userEmail.isNotEmpty)
+              Text(
+                userEmail,
+                style: TextStyle(fontSize: 16),
+              ),
             SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: () async {

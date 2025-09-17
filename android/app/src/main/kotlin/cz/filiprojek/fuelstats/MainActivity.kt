@@ -1,4 +1,4 @@
-package com.example.android_fuelstats
+package cz.filiprojek.fuelstats
 
 import io.flutter.embedding.android.FlutterActivity
 

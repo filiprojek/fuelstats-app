@@ -58,9 +58,9 @@ class _MainNavigationState extends State<MainNavigation> {
       case 4:
         return Text("Settings");
       case 5:
-        return Text("Login");
+        return Text(""); // Empty title on login
       case 6:
-        return Text("Sign up");
+        return Text(""); // Empty title on signup
       default:
         return Text("Fuel Stats");
     }
@@ -79,7 +79,11 @@ class _MainNavigationState extends State<MainNavigation> {
 
       final screens = [
       HomeScreen(),
-      AddScreen(),
+      AddScreen(
+        onSaved: () {
+          setState(() => _currentIndex = 0);
+        },
+      ),
       VehiclesScreen(),
       HistoryScreen(),
       UserSettingsScreen(
@@ -103,6 +107,11 @@ class _MainNavigationState extends State<MainNavigation> {
         onSwitchToLogin: () {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             setState(() => _currentIndex = 5);
+          });
+        },
+        onSignupSuccess: () {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            setState(() => _currentIndex = 0); // Go to Home
           });
         },
       ),
