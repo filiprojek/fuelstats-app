@@ -32,7 +32,7 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget get currentTitle {
     switch (_currentIndex) {
       case 0:
-        return Text("Fuel Stats");
+        return Text("Dashboard");
       default:
         return Text("Fuel Stats");
     }
@@ -52,7 +52,7 @@ class _MainNavigationState extends State<MainNavigation> {
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.info), label: 'About'),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.info), label: 'About'),
         ],
       ),

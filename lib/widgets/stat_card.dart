@@ -11,8 +11,9 @@ class StatCard extends StatelessWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+        //  padding: EdgeInsets.symmetric(vertical: 40, horizontal: 20),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          //mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
