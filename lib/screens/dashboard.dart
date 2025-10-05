@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +15,16 @@ class LoginScreen extends StatelessWidget {
             Text(
               "Fuel Stats",
               style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "Created by Filip Rojek",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "https://filiprojek.cz",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
             ),
           ],
         ),
