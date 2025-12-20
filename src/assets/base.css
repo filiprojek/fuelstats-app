@@ -95,3 +95,38 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+/* disable touch highlights on mobile in nav
+a,
+a * {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+a:focus,
+a:active {
+  outline: none;
+}
+*/
+
+/* Base anchor behavior */
+a {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+/* Animate the visual child instead of the <a> itself */
+a:active > .icon-label-button {
+  transform: scale(0.95);
+  filter: brightness(1.15);
+}
+
+/* Smooth transition */
+.icon-label-button {
+  transition:
+    transform 120ms ease,
+    filter 120ms ease;
+}

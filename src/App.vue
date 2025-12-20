@@ -36,7 +36,7 @@ const route = useRoute()
   </nav>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 header {
   display: flex;
   flex-direction: row;
@@ -59,6 +59,17 @@ nav {
   padding: var(--space-md);
   border-radius: var(--radius-md);
   padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom));
+}
+
+/* active link */
+nav :deep(a.router-link-active .icon-label-button) {
+  opacity: 1;
+}
+
+/* inactive links */
+nav :deep(a .icon-label-button) {
+  opacity: 0.6;
+  transition: opacity 0.15s;
 }
 
 nav a,
