@@ -36,6 +36,16 @@ const router = createRouter({
       name: 'settings',
       meta: { title: 'Settings' },
       component: () => import('../views/SettingsView.vue'),
+    },{
+      path: '/login',
+      name: 'login',
+      meta: { title: 'Log In', hideNav: true, hideHeader: true },
+      component: () => import('../views/LoginSignupView.vue'),
+    },{
+      path: '/signup',
+      name: 'signup',
+      meta: { title: 'Sign Up', hideNav: true, hideHeader: true },
+      component: () => import('../views/LoginSignupView.vue'),
     },
   ],
 })

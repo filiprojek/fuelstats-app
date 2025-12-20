@@ -2,13 +2,13 @@
   <div class="icon-label-button" :class="{ inline: inline, elevated: elevated }">
     <span v-if="icon" :class="['material-symbols-outlined', { 'material-fill': !outlined }]">{{
       icon
-      }}</span>
+    }}</span>
 
     <slot v-else name="icon" />
 
-    <span v-if="label" class="label">
-      <slot>{{ label }}</slot>
-    </span>
+    <span v-if="label" class="label">{{ label }}</span>
+
+    <slot v-else name="label" />
   </div>
 </template>
 <script setup lang="ts">

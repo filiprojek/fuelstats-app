@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
+import { computed } from 'vue'
 import IconLabelButton from '@/components/IconLabelButton.vue'
 
 const route = useRoute()
+
+const showNav = computed(() => !route.meta.hideNav)
+const showHeader = computed(() => !route.meta.hideHeader)
 </script>
 
 <template>
-  <header>
+  <header v-if="showHeader">
     <h1>{{ route.meta.title ?? 'Fuel Stats' }}</h1>
     <RouterLink to="/settings">
       <IconLabelButton icon="person" />
@@ -17,7 +21,7 @@ const route = useRoute()
     <RouterView />
   </main>
 
-  <nav>
+  <nav v-if="showNav">
     <RouterLink to="/">
       <IconLabelButton label="Home" icon="home" />
     </RouterLink>
@@ -80,7 +84,7 @@ header a {
   align-items: center;
 }
 
-header .material-symbols-outlined {
+header a :deep(.material-symbols-outlined) {
   font-size: 3rem;
 }
 
