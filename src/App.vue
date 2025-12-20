@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { useRoute } from 'vue-router'
 import IconLabelButton from '@/components/IconLabelButton.vue'
+
+const route = useRoute()
 </script>
 
 <template>
   <header>
-    <h1>Fuel Stats</h1>
+    <h1>{{ route.meta.title ?? 'Fuel Stats' }}</h1>
     <RouterLink to="/settings">
       <IconLabelButton icon="person" />
     </RouterLink>
@@ -34,13 +36,13 @@ import IconLabelButton from '@/components/IconLabelButton.vue'
   </nav>
 </template>
 
-<style scoped>
+<style lang="scss">
 header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  margin: 0 var(--space-md);
+  margin: var(--space-md);
 }
 
 nav {
@@ -48,9 +50,15 @@ nav {
   bottom: 0;
   width: 100vw;
   display: flex;
-  gap: var(--space-lg);
+  gap: var(--space-xxl);
   justify-content: center;
   align-items: center;
+  background-color: var(--bg-primary);
+  border-color: var(--bg-secondary);
+  border-style: solid hidden hidden hidden;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom));
 }
 
 nav a,
@@ -59,5 +67,13 @@ header a {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+header .material-symbols-outlined {
+  font-size: 3rem;
+}
+
+main {
+  padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + var(--space-md));
 }
 </style>

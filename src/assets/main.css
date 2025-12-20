@@ -12,6 +12,11 @@ a,
 h1,
 h2,
 h3,
-img {
+img,
+span {
   color: var(--text-primary);
+}
+
+.material-fill {
+  font-variation-settings: 'FILL' 1;
 }

@@ -1,6 +1,8 @@
 <template>
   <div class="icon-label-button">
-    <span v-if="icon" class="material-symbols-outlined">{{ icon }}</span>
+    <span v-if="icon" :class="['material-symbols-outlined', { 'material-fill': !outlined }]">{{
+      icon
+      }}</span>
 
     <slot v-else name="icon" />
 
@@ -9,15 +11,18 @@
     </span>
   </div>
 </template>
-<script setup>
+<script setup lang="ts">
 defineProps({
   label: {
     type: String,
-    required: true,
   },
   icon: {
     type: String,
     default: null,
+  },
+  outlined: {
+    type: Boolean,
+    default: false,
   },
 })
 </script>
