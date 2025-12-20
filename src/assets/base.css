@@ -112,14 +112,21 @@ a:active {
 
 /* Base anchor behavior */
 a,
-button {
+button,
+.icon-label-button {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;
   touch-action: manipulation;
 }
 
-/* Animate the visual child instead of the <a> itself */
+/* Animate when the button itself is pressed */
+.icon-label-button:active {
+  transform: scale(0.95);
+  filter: brightness(1.15);
+}
+
+/* Animate when wrapped by a link or button */
 a:active > .icon-label-button {
   transform: scale(0.95);
   filter: brightness(1.15);
@@ -128,6 +135,6 @@ a:active > .icon-label-button {
 /* Smooth transition */
 .icon-label-button {
   transition:
-    transform 120ms ease,
-    filter 120ms ease;
+    transform 100ms ease,
+    filter 100ms ease;
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="icon-label-button">
+  <div class="icon-label-button" :class="{ inline: inline, elevated: elevated }">
     <span v-if="icon" :class="['material-symbols-outlined', { 'material-fill': !outlined }]">{{
       icon
       }}</span>
@@ -24,6 +24,14 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  inline: {
+    type: Boolean,
+    default: false,
+  },
+  elevated: {
+    type: Boolean,
+    default: false,
+  },
 })
 </script>
 <style scoped>
@@ -32,5 +40,17 @@ defineProps({
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+}
+
+.inline {
+  flex-direction: row;
+  gap: var(--space-sm);
+}
+
+.elevated {
+  background-color: var(--color-primary);
+  padding: var(--space-sm);
+  border-radius: var(--radius-lg);
 }
 </style>
