@@ -111,7 +111,8 @@ a:active {
 */
 
 /* Base anchor behavior */
-a {
+a,
+button {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;
