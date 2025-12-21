@@ -1,14 +1,16 @@
 <script setup lang="ts">
+import { useRoute, useRouter } from 'vue-router'
+import { reactive, ref } from 'vue'
+import axios from 'axios'
 import IconLabelButton from '@/components/IconLabelButton.vue'
 import TextInput from '@/components/TextInput.vue'
 import AppDialog from '@/components/AppDialog.vue'
-import { useRoute, useRouter } from 'vue-router'
-import { reactive, ref } from 'vue'
-
-const API = import.meta.env.VITE_API
+import { useAuthStore } from '@/stores/auth'
+import api from '@/lib/api'
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthStore()
 const loginData = reactive({
   email: '',
   username: '',
@@ -38,90 +40,51 @@ function showDialog(style: DialogStyle, title: string, description = '', autoHid
   }
 }
 
-async function getUserInfo() {
-  try {
-    const res = await fetch(`${API}/user/me`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + localStorage.getItem('token'),
-      },
-      credentials: 'include',
-    })
-
-    const data = await res.json().catch(() => null)
-
-    if (!res.ok) {
-      const msg = data?.message ?? data?.error ?? (typeof data === 'string' ? data : 'Login failed')
-      showDialog('danger', 'Login error', msg, 5000)
-      return
-    }
-
-    return data
-  } catch (e) {
-    showDialog('danger', 'Network error', e instanceof Error ? e.message : 'Request failed', 5000)
-  }
+/**
+ * Fetch user profile and put it into the store.
+ */
+async function loadUserIntoStore() {
+  const res = await api.get('/user/me')
+  auth.setUser(res.data)
 }
+
+function getAxiosMessage(e: unknown, fallback: string) {
+  if (axios.isAxiosError(e)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (e.response?.data as any)?.message ?? (e.response?.data as any)?.error ?? fallback
+  }
+  return e instanceof Error ? e.message : fallback
+}
+
 async function login() {
   try {
-    const res = await fetch(`${API}/auth/signin`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        email: loginData.email,
-        password: loginData.password,
-      }),
+    await api.post('/auth/signin', {
+      email: loginData.email,
+      password: loginData.password,
     })
 
-    const data = await res.json().catch(() => null)
-
-    if (!res.ok) {
-      const msg = data?.message ?? data?.error ?? (typeof data === 'string' ? data : 'Login failed')
-      showDialog('danger', 'Login error', msg, 5000)
-      return
-    }
-
-    showDialog('success', 'Youre logged in', undefined, 500)
-    localStorage.setItem('token', data.token)
-    const userData = await getUserInfo()
-    localStorage.setItem('user', userData)
-    window.setTimeout(() => {
-      router.push('/')
-    }, 500)
-  } catch (e) {
-    showDialog('danger', 'Network error', e instanceof Error ? e.message : 'Request failed', 5000)
+    await loadUserIntoStore()
+    showDialog('success', "You're logged in", '', 500)
+    window.setTimeout(() => router.push('/'), 500)
+  } catch (err) {
+    const msg = getAxiosMessage(err, 'Login failed')
+    showDialog('danger', 'Login error', msg, 5000)
   }
 }
 
 async function signup() {
   try {
-    const res = await fetch(`${API}/auth/signup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        username: loginData.username,
-        email: loginData.email,
-        password: loginData.password,
-      }),
+    await api.post('/auth/signup', {
+      username: loginData.username,
+      email: loginData.email,
+      password: loginData.password,
     })
 
-    const data = await res.json().catch(() => null)
-
-    if (!res.ok) {
-      const msg =
-        data?.message ?? data?.error ?? (typeof data === 'string' ? data : 'Signup failed')
-      showDialog('danger', 'Signup error', msg, 5000)
-      return
-    }
-
-    showDialog('success', 'Account created', 'You can log in now.', 3000)
-    window.setTimeout(() => {
-      router.push('/login')
-    }, 3000)
-  } catch (e) {
-    showDialog('danger', 'Network error', e instanceof Error ? e.message : 'Request failed', 5000)
+    showDialog('success', 'Account created', 'You can log in now.', 1200)
+    window.setTimeout(() => router.push('/login'), 1200)
+  } catch (err) {
+    const msg = getAxiosMessage(err, 'Signup failed')
+    showDialog('danger', 'Signup error', msg, 5000)
   }
 }
 </script>
@@ -129,15 +92,10 @@ async function signup() {
 <template>
   <!-- Notification -->
   <Transition name="toast" appear>
-    <AppDialog
-      v-if="dialogOpen"
-      :title="dialogTitle"
-      :description="dialogDesc"
-      :variant="dialogStyle"
-    />
+    <AppDialog v-if="dialogOpen" :title="dialogTitle" :description="dialogDesc" :variant="dialogStyle" />
   </Transition>
 
-  <form v-if="route.path == '/login'">
+  <form v-if="route.path === '/login'">
     <img src="/app_icon.png" alt="Fuel Stats logo" />
     <h2>Login to Fuel Stats</h2>
 
@@ -148,7 +106,7 @@ async function signup() {
     <RouterLink to="/signup">Don't have an account? Sign up</RouterLink>
   </form>
 
-  <form v-if="route.path == '/signup'">
+  <form v-else-if="route.path === '/signup'">
     <img src="/app_icon.png" alt="Fuel Stats logo" />
     <h2>Create your Fuel Stats account</h2>
 
@@ -156,14 +114,7 @@ async function signup() {
     <TextInput v-model="loginData.email" id="email" type="email" placeholder="Email" />
     <TextInput v-model="loginData.password" id="password" type="password" placeholder="Password" />
 
-    <IconLabelButton
-      @click="signup"
-      id="btn-signup"
-      label="Sign Up"
-      icon="person_add"
-      inline
-      elevated
-    />
+    <IconLabelButton @click="signup" id="btn-signup" label="Sign Up" icon="person_add" inline elevated />
     <RouterLink to="/login">Already have an account? Log in</RouterLink>
   </form>
 </template>

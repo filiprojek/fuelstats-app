@@ -1,13 +1,28 @@
-<script setup lang="ts">
-import IconLabelButton from '@/components/IconLabelButton.vue'
-</script>
 <template>
   <section id="settings">
-    <h2>User Name</h2>
-    <p>users@email.com</p>
-    <IconLabelButton id="btn-signout" label="Sign Out" icon="logout" inline elevated />
+    <h2>{{ auth.user?.username ?? '' }}</h2>
+    <p>{{ auth.user?.email ?? '' }}</p>
+    <IconLabelButton @click="logout" id="btn-signout" label="Sign Out" icon="logout" inline elevated />
   </section>
 </template>
+
+<script setup lang="ts">
+import IconLabelButton from '@/components/IconLabelButton.vue'
+import { useAuthStore } from '@/stores/auth'
+import api from '@/lib/api'
+
+const auth = useAuthStore()
+
+async function logout() {
+  try {
+    await api.post('/auth/signout')
+    window.location.href = '/'
+  } catch (err) {
+    console.error(err)
+    window.location.href = '/'
+  }
+}
+</script>
 
 <style lang="scss" scoped>
 section#settings {
