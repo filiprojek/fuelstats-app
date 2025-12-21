@@ -1,14 +1,15 @@
 <template>
   <div class="form-wrapper">
     <SegmentSwitch id="btn-record-type" v-model="mode" :options="options" aria-label="Record type" />
-    <form v-if="mode === 'refuel'">
+    <form v-if="mode === 'refuel'" @submit.prevent="handleRefuel">
       <label for="vehicle">Vehicle</label>
-      <select id="vehicle">
+      <select id="vehicle" v-model="formData.vehicleId">
         <option value="octavia">Octavia</option>
         <option value="vito">Vito</option>
       </select>
+
       <label for="fuel_type">Fuel Type</label>
-      <select id="fuel_type">
+      <select id="fuel_type" v-model="formData.fuelType">
         <option value="diesel">Diesel</option>
         <option value="gasoline95">Gasoline 95</option>
         <option value="gasoline98">Gasoline 98</option>
@@ -23,28 +24,30 @@
       <IconLabelButton icon="local_gas_station" label="Create refuel record" inline elevated />'
     </form>
 
-    <form v-if="mode === 'service'">
+    <form v-if="mode === 'service'" @submit.prevent="handleService">
       <label for="vehicle">Vehicle</label>
-      <select id="vehicle">
+      <select id="vehicle" v-model="formData.vehicleId">
         <option value="octavia">Octavia</option>
         <option value="vito">Vito</option>
       </select>
-      <label for="service_type">Fuel Type</label>
-      <select id="service_type">
+
+      <label for="service_type">Service type</label>
+      <select id="service_type" v-model="formData.serviceType">
         <option value="air-filter">Air filter</option>
         <option value="other">Other</option>
       </select>
+
       <TextInput v-model="formData.cost" id="cost" type="number" placeholder="Cost" />
       <TextInput v-model="formData.mileage" id="mileage" type="number" placeholder="Mileage" />
 
       <IconLabelButton icon="build" label="Create service record" inline elevated />'
     </form>
 
-    <form v-if="mode === 'vehicle'">
+    <form v-if="mode === 'vehicle'" @submit.prevent="handleVehicle">
       <TextInput v-model="formData.vehicleName" id="vehicleName" type="text" placeholder="Name" />
       <TextInput v-model="formData.vehiclePlate" id="vehiclePlate" type="text" placeholder="Registration plate" />
       <label for="vehicle_fuel_type">Fuel Type</label>
-      <select id="vehicle_fuel_type">
+      <select id="vehicle_fuel_type" v-model="formData.fuelType">
         <option value="diesel">Diesel</option>
         <option value="gasoline95">Gasoline 95</option>
         <option value="gasoline98">Gasoline 98</option>
@@ -76,10 +79,54 @@ const formData = reactive({
   totalPrice: '',
   mileage: '',
   cost: '',
+  serviceType: '',
+  vehicleId: '',
   vehicleName: '',
   vehiclePlate: '',
   vehicleNote: '',
+  fuelType: '',
 })
+
+async function handleRefuel() {
+  console.log('Handle refuel')
+  const body = {
+    vehicleId: formData.vehicleId,
+    fuelType: formData.fuelType,
+    note: formData.vehicleNote,
+    liters: formData.liters,
+    pricePerLiter: formData.pricePerLiter,
+    totalPrice: formData.totalPrice,
+    mileage: formData.mileage,
+  }
+  console.log(body)
+}
+async function handleService() {
+  console.log('Handle service')
+  const body = {
+    vehicleId: formData.vehicleId,
+    serviceType: formData.serviceType,
+    //customType: formData.customType,
+    //itemName: formData.itemName,
+    cost: formData.cost,
+    mileage: formData.mileage,
+    //shop: formData.shop,
+    //selfService: formData.selfService,
+    note: formData.vehicleNote,
+    //photos: formData.photos, // array of string bytes
+    //date: formData.date,
+  }
+  console.log(body)
+}
+async function handleVehicle() {
+  console.log('Handle vehicle')
+  const body = {
+    name: formData.vehicleName,
+    plate: formData.vehiclePlate,
+    fuel_type: formData.fuelType,
+    note: formData.vehicleNote,
+  }
+  console.log(body)
+}
 </script>
 
 <style lang="scss" scoped>
