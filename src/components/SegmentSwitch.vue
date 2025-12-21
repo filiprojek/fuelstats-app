@@ -5,7 +5,7 @@ export type SegmentOption<T extends string = string> = {
   value: T
   label: string
   icon?: string
-  accent?: 'success' | 'warning' | 'danger' | 'primary' // optional
+  accent?: 'success' | 'warning' | 'danger' | 'primary' | 'primary-light' // optional
 }
 
 const props = defineProps<{
@@ -151,6 +151,10 @@ function select(value: string) {
 
 .btn.active.accent-primary {
   color: var(--color-primary);
+}
+
+.btn.active.accent-primary-light {
+  color: var(--color-primary-light);
 }
 
 @media (prefers-reduced-motion: reduce) {

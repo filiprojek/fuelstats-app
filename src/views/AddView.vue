@@ -39,6 +39,20 @@
 
       <IconLabelButton icon="build" label="Create service record" inline elevated />'
     </form>
+
+    <form v-if="mode === 'vehicle'">
+      <TextInput v-model="formData.vehicleName" id="vehicleName" type="text" placeholder="Name" />
+      <TextInput v-model="formData.vehiclePlate" id="vehiclePlate" type="text" placeholder="Registration plate" />
+      <label for="vehicle_fuel_type">Fuel Type</label>
+      <select id="vehicle_fuel_type">
+        <option value="diesel">Diesel</option>
+        <option value="gasoline95">Gasoline 95</option>
+        <option value="gasoline98">Gasoline 98</option>
+        <option value="other">Other</option>
+      </select>
+      <TextInput v-model="formData.vehicleNote" id="vehicleNote" type="text" placeholder="Note (optional)" />
+      <IconLabelButton icon="directions_car" label="Create vehicle record" inline elevated />'
+    </form>
   </div>
 </template>
 
@@ -48,11 +62,12 @@ import SegmentSwitch, { type SegmentOption } from '@/components/SegmentSwitch.vu
 import TextInput from '@/components/TextInput.vue'
 import IconLabelButton from '@/components/IconLabelButton.vue'
 
-type Mode = 'refuel' | 'service'
+type Mode = 'refuel' | 'service' | 'vehicle'
 const mode = ref<Mode>('refuel')
 const options: SegmentOption<Mode>[] = [
   { value: 'refuel', label: 'Refuel', icon: 'local_gas_station', accent: 'success' },
   { value: 'service', label: 'Service', icon: 'build', accent: 'warning' },
+  { value: 'vehicle', label: 'Vehicle', icon: 'directions_car', accent: 'primary-light' },
 ]
 
 const formData = reactive({
@@ -61,6 +76,9 @@ const formData = reactive({
   totalPrice: '',
   mileage: '',
   cost: '',
+  vehicleName: '',
+  vehiclePlate: '',
+  vehicleNote: '',
 })
 </script>
 
@@ -111,6 +129,10 @@ form {
 
   max-width: 30rem;
   width: 90%;
+
+  .icon-label-button {
+    margin-top: var(--space-sm);
+  }
 }
 
 select {

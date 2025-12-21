@@ -32,7 +32,7 @@ const emit = defineEmits<{
 .text-input {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
   text-align: left;
 }
 
