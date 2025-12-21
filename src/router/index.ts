@@ -25,7 +25,7 @@ const router = createRouter({
       path: '/vehicles',
       name: 'vehicles',
       meta: { title: 'Vehicles', requiresAuth: true },
-      component: () => import('../views/AboutView.vue'),
+      component: () => import('../views/VehiclesView.vue'),
     },
     {
       path: '/history',
