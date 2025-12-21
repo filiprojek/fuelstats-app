@@ -18,6 +18,8 @@ api.interceptors.response.use(
 
       // avoid redirect loop
       const name = router.currentRoute.value.name
+      console.log(name)
+
       if (name !== "login" && name !== "signup") {
         router.push("/login")
       }

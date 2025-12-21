@@ -95,18 +95,18 @@ async function signup() {
     <AppDialog v-if="dialogOpen" :title="dialogTitle" :description="dialogDesc" :variant="dialogStyle" />
   </Transition>
 
-  <form v-if="route.path === '/login'">
+  <form v-if="route.path === '/login'" @submit.prevent="login">
     <img src="/app_icon.png" alt="Fuel Stats logo" />
     <h2>Login to Fuel Stats</h2>
 
     <TextInput v-model="loginData.email" id="email" type="email" placeholder="Email" />
     <TextInput v-model="loginData.password" id="password" type="password" placeholder="Password" />
 
-    <IconLabelButton @click="login" id="btn-login" label="Log In" icon="login" inline elevated />
+    <IconLabelButton type="submit" id="btn-login" label="Log In" icon="login" inline elevated />
     <RouterLink to="/signup">Don't have an account? Sign up</RouterLink>
   </form>
 
-  <form v-else-if="route.path === '/signup'">
+  <form v-else-if="route.path === '/signup'" @submit.prevent="signup">
     <img src="/app_icon.png" alt="Fuel Stats logo" />
     <h2>Create your Fuel Stats account</h2>
 
@@ -114,7 +114,7 @@ async function signup() {
     <TextInput v-model="loginData.email" id="email" type="email" placeholder="Email" />
     <TextInput v-model="loginData.password" id="password" type="password" placeholder="Password" />
 
-    <IconLabelButton @click="signup" id="btn-signup" label="Sign Up" icon="person_add" inline elevated />
+    <IconLabelButton type="submit" id="btn-signup" label="Sign Up" icon="person_add" inline elevated />
     <RouterLink to="/login">Already have an account? Log in</RouterLink>
   </form>
 </template>

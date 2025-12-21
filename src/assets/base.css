@@ -138,3 +138,15 @@ a:active > .icon-label-button {
     transform 100ms ease,
     filter 100ms ease;
 }
+
+/* reset buttons */
+button {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+  border: 0;
+  padding: 0;
+}

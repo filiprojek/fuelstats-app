@@ -1,38 +1,35 @@
 <template>
-  <div class="icon-label-button" :class="{ inline: inline, elevated: elevated }">
+  <button class="icon-label-button" :class="{ inline: inline, elevated: elevated }" v-bind="$attrs">
     <span v-if="icon" :class="['material-symbols-outlined', { 'material-fill': !outlined }]">{{
       icon
-    }}</span>
+      }}</span>
 
     <slot v-else name="icon" />
 
     <span v-if="label" class="label">{{ label }}</span>
 
     <slot v-else name="label" />
-  </div>
+  </button>
 </template>
 <script setup lang="ts">
-defineProps({
-  label: {
-    type: String,
+defineOptions({ inheritAttrs: false })
+withDefaults(
+  defineProps<{
+    label?: string
+    icon?: string | null
+    outlined?: boolean
+    inline?: boolean
+    elevated?: boolean
+    type?: 'button' | 'submit' | 'reset'
+  }>(),
+  {
+    icon: null,
+    outlined: false,
+    inline: false,
+    elevated: false,
+    type: 'button',
   },
-  icon: {
-    type: String,
-    default: null,
-  },
-  outlined: {
-    type: Boolean,
-    default: false,
-  },
-  inline: {
-    type: Boolean,
-    default: false,
-  },
-  elevated: {
-    type: Boolean,
-    default: false,
-  },
-})
+)
 </script>
 <style scoped>
 .icon-label-button {
