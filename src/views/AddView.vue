@@ -1,14 +1,3 @@
-<script setup lang="ts">
-import { ref } from 'vue'
-import SegmentSwitch, { type SegmentOption } from '@/components/SegmentSwitch.vue'
-type Mode = 'refuel' | 'service'
-const mode = ref<Mode>('refuel')
-const options: SegmentOption<Mode>[] = [
-  { value: 'refuel', label: 'Refuel', icon: 'local_gas_station', accent: 'success' },
-  { value: 'service', label: 'Service', icon: 'build', accent: 'warning' },
-]
-</script>
-
 <template>
   <SegmentSwitch id="btn-record-type" v-model="mode" :options="options" aria-label="Record type" />
   <form v-if="mode === 'refuel'">
@@ -45,6 +34,17 @@ const options: SegmentOption<Mode>[] = [
     <input id="mileage" type="number" />
   </form>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import SegmentSwitch, { type SegmentOption } from '@/components/SegmentSwitch.vue'
+type Mode = 'refuel' | 'service'
+const mode = ref<Mode>('refuel')
+const options: SegmentOption<Mode>[] = [
+  { value: 'refuel', label: 'Refuel', icon: 'local_gas_station', accent: 'success' },
+  { value: 'service', label: 'Service', icon: 'build', accent: 'warning' },
+]
+</script>
 
 <style lang="scss" scoped>
 #btn-record-type {
