@@ -1,12 +1,12 @@
 <script setup lang="ts">
-export type InputType = 'text' | 'password' | 'email'
+export type InputType = 'text' | 'password' | 'email' | 'number'
 
 const props = withDefaults(
   defineProps<{
     id?: string
     type?: InputType
     placeholder?: string
-    modelValue: string
+    modelValue: string | number
   }>(),
   {
     type: 'text',
@@ -23,17 +23,12 @@ const emit = defineEmits<{
 <template>
   <div class="text-input">
     <label :for="id">{{ props.placeholder }}</label>
-    <input
-      :id="props.id"
-      :type="props.type"
-      :placeholder="props.placeholder"
-      :value="props.modelValue"
-      @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-    />
+    <input :id="props.id" :type="props.type" :placeholder="props.placeholder" :value="props.modelValue"
+      @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)" />
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .text-input {
   display: flex;
   flex-direction: column;
@@ -42,8 +37,7 @@ const emit = defineEmits<{
 }
 
 label {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   user-select: none;
 }
 
