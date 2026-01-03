@@ -20,42 +20,10 @@
 
 <script setup lang="ts">
 import IconLabelButton from '@/components/IconLabelButton.vue'
-import { onMounted, ref } from 'vue'
-import api from '@/lib/api'
+import { onMounted } from 'vue'
+import { useVehicles } from '@/composables/useVehicles'
 
-type Vehicle = {
-  id: string
-  name: string
-  registrationPlate: string
-  fuelType: string
-  isDefault: boolean
-  note?: string | null
-  createdAt: string
-  userId: string
-}
-
-const vehicles = ref<Vehicle[]>([])
-
-async function fetchVehicles() {
-  try {
-    const res = await api.get('/vehicles')
-    vehicles.value = res.data
-  } catch (err) {
-    console.error(err)
-  }
-}
-
-async function setVehicleDefault(vehicleId: string, vehicleDefaultState: boolean) {
-  console.log(vehicleId)
-  try {
-    await api.put(`/vehicles/${vehicleId}`, {
-      isDefault: !vehicleDefaultState,
-    })
-  } catch (err) {
-    console.error(err)
-  }
-  await fetchVehicles()
-}
+const { vehicles, fetchVehicles, setVehicleDefault } = useVehicles()
 
 onMounted(fetchVehicles)
 </script>
