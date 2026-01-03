@@ -4,16 +4,16 @@
     <form v-if="mode === 'refuel'" @submit.prevent="handleRefuel">
       <label for="vehicle">Vehicle</label>
       <select id="vehicle" v-model="formData.vehicleId">
-        <option value="octavia">Octavia</option>
-        <option value="vito">Vito</option>
+        <option v-for="vehicle in vehicles" :key="vehicle.id" :value="vehicle.id">
+          {{ vehicle.name }}
+        </option>
       </select>
 
       <label for="fuel_type">Fuel Type</label>
       <select id="fuel_type" v-model="formData.fuelType">
-        <option value="diesel">Diesel</option>
-        <option value="gasoline95">Gasoline 95</option>
-        <option value="gasoline98">Gasoline 98</option>
-        <option value="other">Other</option>
+        <option v-for="fuelType in FUEL_TYPES" :key="fuelType.value" :value="fuelType.value">
+          {{ fuelType.label }}
+        </option>
       </select>
 
       <TextInput v-model="formData.liters" id="liters" type="number" placeholder="Liters" />
@@ -27,14 +27,16 @@
     <form v-if="mode === 'service'" @submit.prevent="handleService">
       <label for="vehicle">Vehicle</label>
       <select id="vehicle" v-model="formData.vehicleId">
-        <option value="octavia">Octavia</option>
-        <option value="vito">Vito</option>
+        <option v-for="vehicle in vehicles" :key="vehicle.id" :value="vehicle.id">
+          {{ vehicle.name }}
+        </option>
       </select>
 
       <label for="service_type">Service type</label>
       <select id="service_type" v-model="formData.serviceType">
-        <option value="air-filter">Air filter</option>
-        <option value="other">Other</option>
+        <option v-for="serviceType in SERVICE_TYPES" :key="serviceType.value" :value="serviceType.value">
+          {{ serviceType.label }}
+        </option>
       </select>
 
       <TextInput v-model="formData.cost" id="cost" type="number" placeholder="Cost" />
@@ -48,10 +50,9 @@
       <TextInput v-model="formData.vehiclePlate" id="vehiclePlate" type="text" placeholder="Registration plate" />
       <label for="vehicle_fuel_type">Fuel Type</label>
       <select id="vehicle_fuel_type" v-model="formData.fuelType">
-        <option value="diesel">Diesel</option>
-        <option value="gasoline95">Gasoline 95</option>
-        <option value="gasoline98">Gasoline 98</option>
-        <option value="other">Other</option>
+        <option v-for="fuelType in FUEL_TYPES" :key="fuelType.value" :value="fuelType.value">
+          {{ fuelType.label }}
+        </option>
       </select>
       <TextInput v-model="formData.vehicleNote" id="vehicleNote" type="text" placeholder="Note (optional)" />
       <IconLabelButton icon="directions_car" label="Create vehicle record" inline elevated />'
@@ -60,10 +61,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import SegmentSwitch, { type SegmentOption } from '@/components/SegmentSwitch.vue'
 import TextInput from '@/components/TextInput.vue'
 import IconLabelButton from '@/components/IconLabelButton.vue'
+import api from '@/lib/api'
+import { useVehicles } from '@/composables/useVehicles'
+import { FUEL_TYPES, SERVICE_TYPES, type FuelType, type ServiceType } from '@/lib/constants'
 
 type Mode = 'refuel' | 'service' | 'vehicle'
 const mode = ref<Mode>('refuel')
@@ -85,6 +89,19 @@ const formData = reactive({
   vehiclePlate: '',
   vehicleNote: '',
   fuelType: '',
+})
+
+const { vehicles, fetchVehicles } = useVehicles()
+
+onMounted(async () => {
+  await fetchVehicles()
+
+  // set default values for selects in form
+  const def = vehicles.value.find((v) => v.isDefault)
+  if (def && !formData.vehicleId) {
+    formData.vehicleId = def.id
+    formData.fuelType = def.fuelType
+  }
 })
 
 async function handleRefuel() {
@@ -121,11 +138,16 @@ async function handleVehicle() {
   console.log('Handle vehicle')
   const body = {
     name: formData.vehicleName,
-    plate: formData.vehiclePlate,
-    fuel_type: formData.fuelType,
+    registrationPlate: formData.vehiclePlate,
+    fuelType: formData.fuelType,
     note: formData.vehicleNote,
   }
   console.log(body)
+  try {
+    api.post('/vehicles', body)
+  } catch (err: any) {
+    console.error(err)
+  }
 }
 </script>
 
@@ -143,11 +165,11 @@ form {
   margin: 0 var(--space-md);
 }
 
-#btn-refuel> :deep(.material-symbols-outlined) {
+#btn-refuel > :deep(.material-symbols-outlined) {
   color: green;
 }
 
-#btn-service> :deep(.material-symbols-outlined) {
+#btn-service > :deep(.material-symbols-outlined) {
   color: orange;
 }
 
