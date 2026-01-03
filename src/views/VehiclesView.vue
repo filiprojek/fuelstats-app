@@ -1,13 +1,13 @@
 <template>
   <div id="vehicles">
-    <div class="vehicle favorite">
+    <div v-for="vehicle in vehicles" :key="vehicle.id" class="vehicle" :class="{ favorite: vehicle.isDefault }">
       <div class="left-wrp">
         <div class="v-default">
-          <IconLabelButton icon="star" />
+          <IconLabelButton icon="star" @click="setVehicleDefault(vehicle.id, vehicle.isDefault)" />
         </div>
         <div class="v-info">
-          <b>Octavia</b>
-          <p>9U47159 • Diesel • Note</p>
+          <b>{{ vehicle.name }}</b>
+          <p>{{ vehicle.registrationPlate.toUpperCase() }} • {{ vehicle.fuelType }} • {{ vehicle.note }}</p>
         </div>
       </div>
       <div class="v-actions">
@@ -15,40 +15,6 @@
         <IconLabelButton class="i-delete" icon="delete" />
       </div>
     </div>
-
-    <!--
-    <div class="vehicle">
-      <div class="left-wrp">
-        <div class="v-default">
-          <IconLabelButton icon="star" />
-        </div>
-        <div class="v-info">
-          <b>Octavia</b>
-          <p>9U47159 • Diesel • Note</p>
-        </div>
-      </div>
-      <div class="v-actions">
-        <IconLabelButton class="i-edit" icon="edit" />
-        <IconLabelButton class="i-delete" icon="delete" />
-      </div>
-    </div>
-
-    <div class="vehicle favorite">
-      <div class="left-wrp">
-        <div class="v-default">
-          <IconLabelButton icon="star" />
-        </div>
-        <div class="v-info">
-          <b>Octavia</b>
-          <p>9U47159 • Diesel • Note</p>
-        </div>
-      </div>
-      <div class="v-actions">
-        <IconLabelButton class="i-edit" icon="edit" />
-        <IconLabelButton class="i-delete" icon="delete" />
-      </div>
-    </div>
-    -->
   </div>
 </template>
 
@@ -57,17 +23,41 @@ import IconLabelButton from '@/components/IconLabelButton.vue'
 import { onMounted, ref } from 'vue'
 import api from '@/lib/api'
 
-const vehicles = ref([])
+type Vehicle = {
+  id: string
+  name: string
+  registrationPlate: string
+  fuelType: string
+  isDefault: boolean
+  note?: string | null
+  createdAt: string
+  userId: string
+}
 
-onMounted(async () => {
+const vehicles = ref<Vehicle[]>([])
+
+async function fetchVehicles() {
   try {
     const res = await api.get('/vehicles')
-    console.log(res)
     vehicles.value = res.data
   } catch (err) {
     console.error(err)
   }
-})
+}
+
+async function setVehicleDefault(vehicleId: string, vehicleDefaultState: boolean) {
+  console.log(vehicleId)
+  try {
+    await api.put(`/vehicles/${vehicleId}`, {
+      isDefault: !vehicleDefaultState,
+    })
+  } catch (err) {
+    console.error(err)
+  }
+  await fetchVehicles()
+}
+
+onMounted(fetchVehicles)
 </script>
 
 <style lang="scss" scoped>
