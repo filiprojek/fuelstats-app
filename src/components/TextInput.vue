@@ -1,5 +1,5 @@
 <script setup lang="ts">
-export type InputType = 'text' | 'password' | 'email' | 'number'
+export type InputType = 'text' | 'password' | 'email' | 'number' | 'date'
 
 const props = withDefaults(
   defineProps<{

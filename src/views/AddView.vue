@@ -7,6 +7,8 @@
   <div class="form-wrapper">
     <SegmentSwitch id="btn-record-type" v-model="mode" :options="options" aria-label="Record type" />
     <form v-if="mode === 'refuel'" @submit.prevent="handleRefuel">
+      <TextInput v-model="formData.date" id="refuel_date" type="date" placeholder="Date" />
+
       <label for="vehicle">Vehicle</label>
       <select id="vehicle" v-model="formData.vehicleId">
         <option disabled selected value="select-an-option">-- select an option --</option>
@@ -32,6 +34,8 @@
     </form>
 
     <form v-if="mode === 'service'" @submit.prevent="handleService">
+      <TextInput v-model="formData.date" id="service_date" type="date" placeholder="Date" />
+
       <label for="vehicle">Vehicle</label>
       <select id="vehicle" v-model="formData.vehicleId">
         <option disabled selected value="select-an-option">-- select an option --</option>
@@ -94,6 +98,14 @@ const options: SegmentOption<Mode>[] = [
 
 const router = useRouter()
 
+function getTodayString() {
+  const d = new Date()
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 const formData = reactive({
   liters: '',
   pricePerLiter: '',
@@ -106,6 +118,7 @@ const formData = reactive({
   vehiclePlate: '',
   vehicleNote: '',
   fuelType: '',
+  date: getTodayString(),
 })
 
 type DialogStyle = 'success' | 'danger' | 'warning' | 'info'
@@ -147,6 +160,7 @@ function resetForm() {
   formData.vehicleName = ''
   formData.vehiclePlate = ''
   formData.vehicleNote = ''
+  formData.date = getTodayString()
 
   const def = vehicles.value.find((v) => v.isDefault)
   if (def) {
@@ -237,6 +251,7 @@ async function handleRefuel() {
     pricePerLiter: Number(formData.pricePerLiter),
     totalPrice: Number(formData.totalPrice),
     mileage: Number(formData.mileage),
+    date: new Date(formData.date).toISOString(),
   }
   try {
     await api.post('/refuels', body)
@@ -257,7 +272,7 @@ async function handleService() {
     cost: Number(formData.cost),
     mileage: Number(formData.mileage),
     note: formData.vehicleNote || null,
-    date: new Date().toISOString(),
+    date: new Date(formData.date).toISOString(),
   }
   try {
     await api.post('/services', body)

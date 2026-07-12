@@ -16,6 +16,7 @@ type RefuelRecord = {
   pricePerLiter: number
   totalPrice: number
   mileage: number
+  date?: string
   createdAt: string
 }
 
@@ -52,7 +53,7 @@ const activeVehicleRefuels = computed(() => {
   if (!defaultVehicle.value) return []
   return refuels.value
     .filter((r) => r.vehicleId === defaultVehicle.value!.id)
-    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    .sort((a, b) => new Date(a.date || a.createdAt).getTime() - new Date(b.date || b.createdAt).getTime())
 })
 
 const avgConsumptionAllTime = computed(() => {
@@ -95,7 +96,7 @@ function getDistanceForDays(days: number | null): string {
   if (days !== null) {
     const cutoffDate = new Date()
     cutoffDate.setDate(cutoffDate.getDate() - days)
-    filtered = list.filter((r) => new Date(r.createdAt).getTime() >= cutoffDate.getTime())
+    filtered = list.filter((r) => new Date(r.date || r.createdAt).getTime() >= cutoffDate.getTime())
   }
 
   if (filtered.length === 0) return '0 km'
@@ -119,7 +120,7 @@ const gasPriceChartData = computed(() => {
   const list = activeVehicleRefuels.value.slice(-14)
   return {
     labels: list.map((r) =>
-      new Date(r.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      new Date(r.date || r.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
     ),
     data: list.map((r) => r.pricePerLiter),
   }
@@ -135,7 +136,7 @@ const consumptionTrendChartData = computed(() => {
     if (distance > 0) {
       trendData.push((100 * list[i]!.liters) / distance)
       trendLabels.push(
-        new Date(list[i]!.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        new Date(list[i]!.date || list[i]!.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
       );
     }
   }

@@ -158,12 +158,12 @@
 
             <label for="edit_hist_cost">Cost</label>
             <TextInput v-model="editForm.cost" id="edit_hist_cost" type="number" placeholder="Cost" />
-
-            <label for="edit_hist_date">Date</label>
-            <input id="edit_hist_date" type="datetime-local" class="custom-date-input" v-model="editForm.date" />
           </template>
 
           <!-- Common Fields -->
+          <label for="edit_hist_date">Date</label>
+          <input id="edit_hist_date" type="datetime-local" class="custom-date-input" v-model="editForm.date" />
+
           <label for="edit_hist_mileage">Odometer (km)</label>
           <TextInput v-model="editForm.mileage" id="edit_hist_mileage" type="number" placeholder="Mileage" />
 
@@ -202,6 +202,7 @@ type RefuelRecord = {
   pricePerLiter: number
   totalPrice: number
   mileage: number
+  date?: string
   createdAt: string
 }
 
@@ -344,7 +345,7 @@ const filteredItems = computed(() => {
     ...refuels.value.map((r) => ({
       id: r.id,
       type: 'refuel' as const,
-      date: r.createdAt || '',
+      date: r.date || r.createdAt || '',
       vehicleId: r.vehicleId,
       note: r.note,
       mileage: r.mileage,
@@ -421,6 +422,7 @@ function startEdit(item: HistoryItem) {
   editForm.vehicleId = item.vehicleId
   editForm.note = item.note || ''
   editForm.mileage = String(item.mileage)
+  editForm.date = formatToDatetimeLocal(item.date)
 
   if (item.type === 'refuel') {
     const r = item.data as RefuelRecord
@@ -432,7 +434,6 @@ function startEdit(item: HistoryItem) {
     const s = item.data as ServiceRecord
     editForm.serviceType = s.serviceType || ''
     editForm.cost = String(s.cost || '')
-    editForm.date = formatToDatetimeLocal(s.date || s.createdAt)
   }
 
   isEditing.value = true
@@ -453,6 +454,7 @@ async function saveRecord() {
         pricePerLiter: Number(editForm.pricePerLiter),
         totalPrice: Number(editForm.totalPrice),
         mileage: Number(editForm.mileage),
+        date: new Date(editForm.date).toISOString(),
       })
       showDialog('success', 'Refuel record updated successfully', '', 1500)
       await fetchRefuels()
