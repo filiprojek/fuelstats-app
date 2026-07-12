@@ -37,3 +37,4 @@ __screenshots__/
 
 *.env
 !.env.example
+backups/
