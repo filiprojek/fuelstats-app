@@ -24,13 +24,34 @@ async function fetchVehicles() {
 }
 
 async function setVehicleDefault(vehicleId: string, vehicleDefaultState: boolean) {
-  console.log(vehicleId)
+  if (vehicleDefaultState) return // already default, do nothing
+
   try {
-    await api.put(`/vehicles/${vehicleId}`, {
-      isDefault: !vehicleDefaultState,
-    })
+    // 1. Find the current default vehicle and unset it in DB
+    const currentDefault = vehicles.value.find((v) => v.isDefault)
+    if (currentDefault) {
+      await api.put(`/vehicles/${currentDefault.id}`, {
+        name: currentDefault.name,
+        registrationPlate: currentDefault.registrationPlate,
+        fuelType: currentDefault.fuelType,
+        note: currentDefault.note || '',
+        isDefault: false,
+      })
+    }
+
+    // 2. Set the new vehicle as default
+    const newDefault = vehicles.value.find((v) => v.id === vehicleId)
+    if (newDefault) {
+      await api.put(`/vehicles/${vehicleId}`, {
+        name: newDefault.name,
+        registrationPlate: newDefault.registrationPlate,
+        fuelType: newDefault.fuelType,
+        note: newDefault.note || '',
+        isDefault: true,
+      })
+    }
   } catch (err) {
-    console.error(err)
+    console.error('Failed to set vehicle default:', err)
   }
   await fetchVehicles()
 }
