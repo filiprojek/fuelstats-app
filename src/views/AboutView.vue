@@ -137,13 +137,8 @@
               </option>
             </select>
 
-            <label for="edit_hist_liters">Liters</label>
             <TextInput v-model="editForm.liters" id="edit_hist_liters" type="number" placeholder="Liters" />
-
-            <label for="edit_hist_price">Price per Liter</label>
             <TextInput v-model="editForm.pricePerLiter" id="edit_hist_price" type="number" placeholder="Price per liter" />
-
-            <label for="edit_hist_total">Total Price</label>
             <TextInput v-model="editForm.totalPrice" id="edit_hist_total" type="number" placeholder="Total price" />
           </template>
 
@@ -156,7 +151,6 @@
               </option>
             </select>
 
-            <label for="edit_hist_cost">Cost</label>
             <TextInput v-model="editForm.cost" id="edit_hist_cost" type="number" placeholder="Cost" />
           </template>
 
@@ -164,11 +158,8 @@
           <label for="edit_hist_date">Date</label>
           <input id="edit_hist_date" type="datetime-local" class="custom-date-input" v-model="editForm.date" />
 
-          <label for="edit_hist_mileage">Odometer (km)</label>
-          <TextInput v-model="editForm.mileage" id="edit_hist_mileage" type="number" placeholder="Mileage" />
-
-          <label for="edit_hist_note">Note (optional)</label>
-          <TextInput v-model="editForm.note" id="edit_hist_note" type="text" placeholder="Note" />
+          <TextInput v-model="editForm.mileage" id="edit_hist_mileage" type="number" placeholder="Odometer (km)" />
+          <TextInput v-model="editForm.note" id="edit_hist_note" type="text" placeholder="Note (optional)" />
 
           <div class="modal-actions">
             <button type="button" class="btn-cancel" @click="closeEdit">Cancel</button>

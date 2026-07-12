@@ -29,8 +29,9 @@
       <TextInput v-model="formData.pricePerLiter" @update:modelValue="onPriceUpdate" id="price_per_liter" type="number" placeholder="Price per liter" />
       <TextInput v-model="formData.totalPrice" @update:modelValue="onTotalUpdate" id="total_price" type="number" placeholder="Total price" />
       <TextInput v-model="formData.mileage" id="mileage" type="number" placeholder="Mileage" />
+      <TextInput v-model="formData.note" id="refuel_note" type="text" placeholder="Note (optional)" />
 
-      <IconLabelButton icon="local_gas_station" label="Create refuel record" inline elevated />'
+      <IconLabelButton icon="local_gas_station" label="Create refuel record" inline elevated />
     </form>
 
     <form v-if="mode === 'service'" @submit.prevent="handleService">
@@ -54,8 +55,9 @@
 
       <TextInput v-model="formData.cost" id="cost" type="number" placeholder="Cost" />
       <TextInput v-model="formData.mileage" id="mileage" type="number" placeholder="Mileage" />
+      <TextInput v-model="formData.note" id="service_note" type="text" placeholder="Note (optional)" />
 
-      <IconLabelButton icon="build" label="Create service record" inline elevated />'
+      <IconLabelButton icon="build" label="Create service record" inline elevated />
     </form>
 
     <form v-if="mode === 'vehicle'" @submit.prevent="handleVehicle">
@@ -70,8 +72,8 @@
         </option>
       </select>
 
-      <TextInput v-model="formData.vehicleNote" id="vehicleNote" type="text" placeholder="Note (optional)" />
-      <IconLabelButton icon="directions_car" label="Create vehicle record" inline elevated />'
+      <TextInput v-model="formData.note" id="vehicleNote" type="text" placeholder="Note (optional)" />
+      <IconLabelButton icon="directions_car" label="Create vehicle record" inline elevated />
     </form>
   </div>
 </template>
@@ -116,7 +118,7 @@ const formData = reactive({
   vehicleId: '',
   vehicleName: '',
   vehiclePlate: '',
-  vehicleNote: '',
+  note: '',
   fuelType: '',
   date: getTodayString(),
 })
@@ -159,7 +161,7 @@ function resetForm() {
   formData.cost = ''
   formData.vehicleName = ''
   formData.vehiclePlate = ''
-  formData.vehicleNote = ''
+  formData.note = ''
   formData.date = getTodayString()
 
   const def = vehicles.value.find((v) => v.isDefault)
@@ -246,7 +248,7 @@ async function handleRefuel() {
   const body = {
     vehicleId: formData.vehicleId,
     fuelType: formData.fuelType,
-    note: formData.vehicleNote || null,
+    note: formData.note || null,
     liters: Number(formData.liters),
     pricePerLiter: Number(formData.pricePerLiter),
     totalPrice: Number(formData.totalPrice),
@@ -271,7 +273,7 @@ async function handleService() {
     serviceType: formData.serviceType,
     cost: Number(formData.cost),
     mileage: Number(formData.mileage),
-    note: formData.vehicleNote || null,
+    note: formData.note || null,
     date: new Date(formData.date).toISOString(),
   }
   try {
@@ -291,7 +293,7 @@ async function handleVehicle() {
     name: formData.vehicleName,
     registrationPlate: formData.vehiclePlate,
     fuelType: formData.fuelType,
-    note: formData.vehicleNote || null,
+    note: formData.note || null,
   }
   try {
     await api.post('/vehicles', body)

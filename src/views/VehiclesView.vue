@@ -39,10 +39,8 @@
       <div class="edit-modal">
         <h3>Edit Vehicle</h3>
         <form @submit.prevent="saveVehicle">
-          <label for="edit_name">Name</label>
           <TextInput v-model="editForm.name" id="edit_name" type="text" placeholder="Name" />
 
-          <label for="edit_plate">Registration Plate</label>
           <TextInput v-model="editPlateModel" id="edit_plate" type="text" placeholder="Registration plate" />
 
           <label for="edit_fuel_type">Fuel Type</label>
@@ -52,8 +50,7 @@
             </option>
           </select>
 
-          <label for="edit_note">Note (optional)</label>
-          <TextInput v-model="editForm.note" id="edit_note" type="text" placeholder="Note" />
+          <TextInput v-model="editForm.note" id="edit_note" type="text" placeholder="Note (optional)" />
 
           <div class="modal-actions">
             <button type="button" class="btn-cancel" @click="closeEdit">Cancel</button>
