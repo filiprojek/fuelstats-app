@@ -1,0 +1,42 @@
+services:
+  mongodb:
+    image: mongo:8.0.11
+    container_name: fuelstats-mongo-prod
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    volumes:
+      - fuelstats-mongo-prod-data:/data/db
+    # Do not expose MongoDB port to the public web for security
+
+  api-server:
+    build:
+      context: ../fuelstats-server
+      dockerfile: Dockerfile
+    container_name: fuelstats-server-prod
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    environment:
+      NODE_ENV: production
+      TZ: 'Europe/Prague'
+      JWT_SECRET: 'change_this_to_a_secure_random_string'
+      DB_URI: 'mongodb://root:root@mongodb:27017/fuelstats?authSource=admin'
+      APP_PORT: 6060
+      APP_HOSTNAME: '0.0.0.0'
+      CORS_WHITELIST: '*' # Or restrict to specific domains if needed
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fuelstats-frontend-prod
+    restart: unless-stopped
+    depends_on:
+      - api-server
+    ports:
+      - "80:80" # Expose frontend port 80 to the public web
+
+volumes:
+  fuelstats-mongo-prod-data:
