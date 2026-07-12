@@ -97,6 +97,18 @@
             <span class="material-symbols-outlined note-icon">sticky_note_2</span>
             <span>{{ item.note }}</span>
           </p>
+
+          <!-- Photos Section -->
+          <div v-if="item.photos && item.photos.length > 0" class="photos-gallery">
+            <img
+              v-for="photo in item.photos"
+              :key="photo"
+              :src="getImageUrl(photo)"
+              alt="Service attachment"
+              class="photo-thumbnail"
+              @click="openPhotoModal(photo)"
+            />
+          </div>
         </div>
 
         <div class="card-actions">
@@ -152,6 +164,33 @@
             </select>
 
             <TextInput v-model="editForm.cost" id="edit_hist_cost" type="number" placeholder="Cost" />
+
+            <label>Photos (optional)</label>
+            <div class="photo-upload-container">
+              <label class="photo-upload-btn">
+                <span class="material-symbols-outlined">add_a_photo</span>
+                Upload Photos
+                <input type="file" accept="image/*" multiple @change="handleEditPhotoUpload" class="hidden-input" />
+              </label>
+
+              <div class="photo-previews">
+                <!-- Existing Saved Photos (URLs) -->
+                <div v-for="(photo, index) in editSavedPhotos" :key="'saved-' + index" class="photo-preview-item">
+                  <img :src="getImageUrl(photo)" alt="Saved attachment" />
+                  <button type="button" class="remove-photo-btn" @click="removeSavedPhoto(index)" aria-label="Remove saved photo">
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
+                </div>
+
+                <!-- New Uploaded Photos (base64) -->
+                <div v-for="(photo, index) in editNewPhotos" :key="'new-' + index" class="photo-preview-item">
+                  <img :src="photo" alt="New upload preview" />
+                  <button type="button" class="remove-photo-btn" @click="removeNewPhoto(index)" aria-label="Remove new photo">
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </template>
 
           <!-- Common Fields -->
@@ -166,6 +205,16 @@
             <IconLabelButton type="submit" icon="save" label="Save Changes" inline elevated />
           </div>
         </form>
+      </div>
+    </div>
+  </Transition>
+
+  <!-- Photo Viewer Modal -->
+  <Transition name="fade">
+    <div class="photo-viewer-backdrop" v-if="activeViewerPhoto" @click="closePhotoModal">
+      <div class="photo-viewer-content">
+        <span class="material-symbols-outlined close-btn">close</span>
+        <img :src="getImageUrl(activeViewerPhoto)" alt="Full resolution view" />
       </div>
     </div>
   </Transition>
@@ -228,6 +277,7 @@ type HistoryItem = {
   totalPrice?: number
   cost?: number
   serviceType?: string
+  photos?: string[]
   data: RefuelRecord | ServiceRecord
 }
 
@@ -242,6 +292,47 @@ const isLoading = ref(true)
 const isEditing = ref(false)
 const editType = ref<'refuel' | 'service'>('refuel')
 const editId = ref('')
+const editSavedPhotos = ref<string[]>([])
+const editNewPhotos = ref<string[]>([])
+const activeViewerPhoto = ref<string | null>(null)
+
+const getImageUrl = (photoPath: string) => {
+  const base = import.meta.env.VITE_API_BASE || import.meta.env.VITE_API.replace('/api/v1', '')
+  return `${base}${photoPath}`
+}
+
+function openPhotoModal(photo: string) {
+  activeViewerPhoto.value = photo
+}
+
+function closePhotoModal() {
+  activeViewerPhoto.value = null
+}
+
+function handleEditPhotoUpload(event: Event) {
+  const files = (event.target as HTMLInputElement).files
+  if (!files) return
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i]!
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      if (e.target?.result && typeof e.target.result === 'string') {
+        editNewPhotos.value.push(e.target.result)
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+function removeSavedPhoto(index: number) {
+  editSavedPhotos.value.splice(index, 1)
+}
+
+function removeNewPhoto(index: number) {
+  editNewPhotos.value.splice(index, 1)
+}
+
 const editForm = reactive({
   vehicleId: '',
   fuelType: '',
@@ -354,6 +445,7 @@ const filteredItems = computed(() => {
       mileage: s.mileage,
       cost: s.cost,
       serviceType: s.serviceType,
+      photos: s.photos || [],
       data: s,
     })),
   ]
@@ -425,6 +517,8 @@ function startEdit(item: HistoryItem) {
     const s = item.data as ServiceRecord
     editForm.serviceType = s.serviceType || ''
     editForm.cost = String(s.cost || '')
+    editSavedPhotos.value = s.photos ? [...s.photos] : []
+    editNewPhotos.value = []
   }
 
   isEditing.value = true
@@ -456,6 +550,7 @@ async function saveRecord() {
         cost: Number(editForm.cost),
         mileage: Number(editForm.mileage),
         note: editForm.note || null,
+        photos: [...editSavedPhotos.value, ...editNewPhotos.value],
         date: new Date(editForm.date).toISOString(),
       })
       showDialog('success', 'Service record updated successfully', '', 1500)
@@ -926,6 +1021,150 @@ async function confirmDelete(item: HistoryItem) {
   opacity: 0;
   .edit-modal {
     transform: scale(0.95) translateY(10px);
+  }
+}
+.photos-gallery {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+}
+
+.photo-thumbnail {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  cursor: pointer;
+  transition: transform 150ms ease, border-color 150ms ease;
+
+  &:hover {
+    transform: scale(1.05);
+    border-color: var(--color-primary-light);
+  }
+}
+
+.photo-viewer-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+  cursor: zoom-out;
+}
+
+.photo-viewer-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+
+  img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: var(--radius-md);
+    object-fit: contain;
+    border: 1px solid var(--border-default);
+  }
+
+  .close-btn {
+    position: absolute;
+    top: var(--space-sm);
+    right: var(--space-sm);
+    font-size: 2rem;
+    color: var(--text-primary);
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: var(--radius-round);
+    padding: var(--space-xs);
+    cursor: pointer;
+    z-index: 10;
+  }
+}
+
+.photo-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.photo-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-default);
+  background-color: var(--bg-primary);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--color-primary-light);
+    color: var(--text-primary);
+  }
+}
+
+.hidden-input {
+  display: none;
+}
+
+.photo-previews {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+}
+
+.photo-preview-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border-radius: var(--radius-round);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: background 150ms ease;
+
+  &:hover {
+    background: rgba(209, 36, 47, 0.8);
+  }
+
+  .material-symbols-outlined {
+    font-size: 0.85rem;
+    color: inherit;
   }
 }
 </style>

@@ -57,6 +57,24 @@
       <TextInput v-model="formData.mileage" id="mileage" type="number" placeholder="Mileage" />
       <TextInput v-model="formData.note" id="service_note" type="text" placeholder="Note (optional)" />
 
+      <label>Photos (optional)</label>
+      <div class="photo-upload-container">
+        <label class="photo-upload-btn">
+          <span class="material-symbols-outlined">add_a_photo</span>
+          Upload Photos
+          <input type="file" accept="image/*" multiple @change="handlePhotoUpload" class="hidden-input" />
+        </label>
+        
+        <div v-if="uploadedPhotos.length > 0" class="photo-previews">
+          <div v-for="(photo, index) in uploadedPhotos" :key="index" class="photo-preview-item">
+            <img :src="photo" alt="Preview" />
+            <button type="button" class="remove-photo-btn" @click="removePhoto(index)" aria-label="Remove photo">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <IconLabelButton icon="build" label="Create service record" inline elevated />
     </form>
 
@@ -99,6 +117,27 @@ const options: SegmentOption<Mode>[] = [
 ]
 
 const router = useRouter()
+const uploadedPhotos = ref<string[]>([])
+
+function handlePhotoUpload(event: Event) {
+  const files = (event.target as HTMLInputElement).files
+  if (!files) return
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i]!
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      if (e.target?.result && typeof e.target.result === 'string') {
+        uploadedPhotos.value.push(e.target.result)
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+function removePhoto(index: number) {
+  uploadedPhotos.value.splice(index, 1)
+}
 
 function getTodayString() {
   const d = new Date()
@@ -163,6 +202,7 @@ function resetForm() {
   formData.vehiclePlate = ''
   formData.note = ''
   formData.date = getTodayString()
+  uploadedPhotos.value = []
 
   const def = vehicles.value.find((v) => v.isDefault)
   if (def) {
@@ -274,6 +314,7 @@ async function handleService() {
     cost: Number(formData.cost),
     mileage: Number(formData.mileage),
     note: formData.note || null,
+    photos: uploadedPhotos.value,
     date: new Date(formData.date).toISOString(),
   }
   try {
@@ -387,6 +428,87 @@ select {
 
   &:focus {
     border-color: var(--color-primary-light);
+  }
+}
+
+.photo-upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.photo-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-default);
+  background-color: var(--bg-primary);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--color-primary-light);
+    color: var(--text-primary);
+  }
+}
+
+.hidden-input {
+  display: none;
+}
+
+.photo-previews {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+}
+
+.photo-preview-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border-radius: var(--radius-round);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: background 150ms ease;
+
+  &:hover {
+    background: rgba(209, 36, 47, 0.8);
+  }
+
+  .material-symbols-outlined {
+    font-size: 0.85rem;
+    color: inherit;
   }
 }
 </style>
