@@ -75,16 +75,16 @@
             </div>
             <div v-if="item.type === 'refuel'" class="stat-box">
               <span class="label">Price / Liter</span>
-              <span class="value">${{ (item.pricePerLiter || 0).toFixed(2) }}</span>
+              <span class="value">{{ (item.pricePerLiter || 0).toFixed(2) }} ,-</span>
             </div>
             <div v-if="item.type === 'refuel'" class="stat-boxHighlight">
               <span class="label">Total Price</span>
-              <span class="value">${{ (item.totalPrice || 0).toFixed(2) }}</span>
+              <span class="value">{{ (item.totalPrice || 0).toFixed(2) }} ,-</span>
             </div>
 
             <div v-if="item.type === 'service'" class="stat-boxHighlight">
               <span class="label">Cost</span>
-              <span class="value">${{ (item.cost || 0).toFixed(2) }}</span>
+              <span class="value">{{ (item.cost || 0).toFixed(2) }} ,-</span>
             </div>
 
             <div class="stat-box">
