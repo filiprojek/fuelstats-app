@@ -453,12 +453,6 @@ async function confirmDelete(item: HistoryItem) {
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-default);
   overflow: hidden;
-  transition: transform 150ms ease, box-shadow 150ms ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-  }
 
   &.refuel {
     border-left: 4px solid var(--accent-success);
@@ -588,19 +582,20 @@ async function confirmDelete(item: HistoryItem) {
     display: inline-flex;
     align-items: center;
     gap: var(--space-xs);
-    color: var(--color-danger);
+    color: var(--text-secondary);
     font-size: var(--font-size-sm);
     font-weight: 600;
     padding: var(--space-xs) var(--space-sm);
     border-radius: var(--radius-sm);
-    transition: background-color 150ms ease;
+    transition: color 150ms ease, background-color 150ms ease;
 
     span {
       font-size: 1.15rem;
     }
 
     &:hover {
-      background-color: var(--color-danger-muted);
+      color: var(--color-danger);
+      background-color: rgba(209, 36, 47, 0.12);
     }
   }
 }
