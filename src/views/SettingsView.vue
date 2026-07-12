@@ -15,10 +15,12 @@ const auth = useAuthStore()
 
 async function logout() {
   try {
+    localStorage.removeItem('token')
     await api.post('/auth/signout')
     window.location.href = '/'
   } catch (err) {
     console.error(err)
+    localStorage.removeItem('token')
     window.location.href = '/'
   }
 }

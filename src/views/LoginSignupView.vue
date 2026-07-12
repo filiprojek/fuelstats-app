@@ -58,10 +58,14 @@ function getAxiosMessage(e: unknown, fallback: string) {
 
 async function login() {
   try {
-    await api.post('/auth/signin', {
+    const res = await api.post('/auth/signin', {
       email: loginData.email,
       password: loginData.password,
     })
+
+    if (res.data && res.data.token) {
+      localStorage.setItem('token', res.data.token)
+    }
 
     await loadUserIntoStore()
     showDialog('success', "You're logged in", '', 500)

@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import axios from 'axios';
+import api from '@/lib/api'
 import HomeView from '../views/HomeView.vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -63,14 +63,11 @@ const router = createRouter({
 let authChecked = false
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
-  const API = import.meta.env.VITE_API
 
   if (!authChecked) {
     authChecked = true
     try {
-      const res = await axios.get(`${API}/user/me`, {
-        withCredentials: true,
-      })
+      const res = await api.get('/user/me')
       auth.setUser(res.data)
     } catch {
       auth.clear()
