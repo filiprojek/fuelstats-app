@@ -100,6 +100,10 @@
         </div>
 
         <div class="card-actions">
+          <button class="btn-edit" @click="startEdit(item)" aria-label="Edit record">
+            <span class="material-symbols-outlined">edit</span>
+            Edit
+          </button>
           <button class="btn-delete" @click="confirmDelete(item)" aria-label="Delete record">
             <span class="material-symbols-outlined">delete</span>
             Delete
@@ -108,16 +112,84 @@
       </div>
     </div>
   </div>
+
+  <!-- Edit Overlay Modal -->
+  <Transition name="fade">
+    <div class="modal-backdrop" v-if="isEditing" @click.self="closeEdit">
+      <div class="edit-modal">
+        <h3>Edit {{ editType === 'refuel' ? 'Refuel' : 'Service' }} Record</h3>
+
+        <form @submit.prevent="saveRecord">
+          <!-- Vehicle selection -->
+          <label for="edit_hist_vehicle">Vehicle</label>
+          <select id="edit_hist_vehicle" v-model="editForm.vehicleId">
+            <option v-for="vehicle in vehicles" :key="vehicle.id" :value="vehicle.id">
+              {{ vehicle.name }} ({{ vehicle.registrationPlate.toUpperCase() }})
+            </option>
+          </select>
+
+          <!-- Refuel Fields -->
+          <template v-if="editType === 'refuel'">
+            <label for="edit_hist_fuel_type">Fuel Type</label>
+            <select id="edit_hist_fuel_type" v-model="editForm.fuelType">
+              <option v-for="fuelType in FUEL_TYPES" :key="fuelType.value" :value="fuelType.value">
+                {{ fuelType.label }}
+              </option>
+            </select>
+
+            <label for="edit_hist_liters">Liters</label>
+            <TextInput v-model="editForm.liters" id="edit_hist_liters" type="number" placeholder="Liters" />
+
+            <label for="edit_hist_price">Price per Liter</label>
+            <TextInput v-model="editForm.pricePerLiter" id="edit_hist_price" type="number" placeholder="Price per liter" />
+
+            <label for="edit_hist_total">Total Price</label>
+            <TextInput v-model="editForm.totalPrice" id="edit_hist_total" type="number" placeholder="Total price" />
+          </template>
+
+          <!-- Service Fields -->
+          <template v-else-if="editType === 'service'">
+            <label for="edit_hist_service_type">Service Type</label>
+            <select id="edit_hist_service_type" v-model="editForm.serviceType">
+              <option v-for="serviceType in SERVICE_TYPES" :key="serviceType.value" :value="serviceType.value">
+                {{ serviceType.label }}
+              </option>
+            </select>
+
+            <label for="edit_hist_cost">Cost</label>
+            <TextInput v-model="editForm.cost" id="edit_hist_cost" type="number" placeholder="Cost" />
+
+            <label for="edit_hist_date">Date</label>
+            <input id="edit_hist_date" type="datetime-local" class="custom-date-input" v-model="editForm.date" />
+          </template>
+
+          <!-- Common Fields -->
+          <label for="edit_hist_mileage">Odometer (km)</label>
+          <TextInput v-model="editForm.mileage" id="edit_hist_mileage" type="number" placeholder="Mileage" />
+
+          <label for="edit_hist_note">Note (optional)</label>
+          <TextInput v-model="editForm.note" id="edit_hist_note" type="text" placeholder="Note" />
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" @click="closeEdit">Cancel</button>
+            <IconLabelButton type="submit" icon="save" label="Save Changes" inline elevated />
+          </div>
+        </form>
+      </div>
+    </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import axios from 'axios'
 import api from '@/lib/api'
 import { useVehicles } from '@/composables/useVehicles'
 import SegmentSwitch, { type SegmentOption } from '@/components/SegmentSwitch.vue'
+import TextInput from '@/components/TextInput.vue'
+import IconLabelButton from '@/components/IconLabelButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
-import { SERVICE_TYPES } from '@/lib/constants'
+import { SERVICE_TYPES, FUEL_TYPES } from '@/lib/constants'
 
 // Types
 type RefuelRecord = {
@@ -164,6 +236,7 @@ type HistoryItem = {
   totalPrice?: number
   cost?: number
   serviceType?: string
+  data: RefuelRecord | ServiceRecord
 }
 
 // Refs
@@ -172,6 +245,23 @@ const selectedVehicleId = ref<string>('all')
 const refuels = ref<RefuelRecord[]>([])
 const services = ref<ServiceRecord[]>([])
 const isLoading = ref(true)
+
+// Edit State
+const isEditing = ref(false)
+const editType = ref<'refuel' | 'service'>('refuel')
+const editId = ref('')
+const editForm = reactive({
+  vehicleId: '',
+  fuelType: '',
+  note: '',
+  liters: '',
+  pricePerLiter: '',
+  totalPrice: '',
+  mileage: '',
+  serviceType: '',
+  cost: '',
+  date: '',
+})
 
 // Toast Dialog state
 type DialogStyle = 'success' | 'danger' | 'warning' | 'info'
@@ -252,6 +342,7 @@ const filteredItems = computed(() => {
       liters: r.liters,
       pricePerLiter: r.pricePerLiter,
       totalPrice: r.totalPrice,
+      data: r,
     })),
     ...services.value.map((s) => ({
       id: s.id,
@@ -262,6 +353,7 @@ const filteredItems = computed(() => {
       mileage: s.mileage,
       cost: s.cost,
       serviceType: s.serviceType,
+      data: s,
     })),
   ]
 
@@ -299,6 +391,74 @@ function formatDate(dateStr: string): string {
 function formatMileage(mileage: number): string {
   if (mileage === undefined || mileage === null) return '0'
   return mileage.toLocaleString()
+}
+
+// Convert Date ISO string to YYYY-MM-DDTHH:MM for datetime-local
+function formatToDatetimeLocal(dateStr: string): string {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  const offset = date.getTimezoneOffset()
+  const localDate = new Date(date.getTime() - offset * 60 * 1000)
+  return localDate.toISOString().slice(0, 16)
+}
+
+function startEdit(item: HistoryItem) {
+  editId.value = item.id
+  editType.value = item.type
+  editForm.vehicleId = item.vehicleId
+  editForm.note = item.note || ''
+  editForm.mileage = String(item.mileage)
+
+  if (item.type === 'refuel') {
+    const r = item.data as RefuelRecord
+    editForm.fuelType = r.fuelType || ''
+    editForm.liters = String(r.liters || '')
+    editForm.pricePerLiter = String(r.pricePerLiter || '')
+    editForm.totalPrice = String(r.totalPrice || '')
+  } else {
+    const s = item.data as ServiceRecord
+    editForm.serviceType = s.serviceType || ''
+    editForm.cost = String(s.cost || '')
+    editForm.date = formatToDatetimeLocal(s.date || s.createdAt)
+  }
+
+  isEditing.value = true
+}
+
+function closeEdit() {
+  isEditing.value = false
+}
+
+async function saveRecord() {
+  try {
+    if (editType.value === 'refuel') {
+      await api.put(`/refuels/${editId.value}`, {
+        vehicleId: editForm.vehicleId,
+        fuelType: editForm.fuelType,
+        note: editForm.note || null,
+        liters: Number(editForm.liters),
+        pricePerLiter: Number(editForm.pricePerLiter),
+        totalPrice: Number(editForm.totalPrice),
+        mileage: Number(editForm.mileage),
+      })
+      showDialog('success', 'Refuel record updated successfully', '', 1500)
+      await fetchRefuels()
+    } else {
+      await api.put(`/services/${editId.value}`, {
+        vehicleId: editForm.vehicleId,
+        serviceType: editForm.serviceType,
+        cost: Number(editForm.cost),
+        mileage: Number(editForm.mileage),
+        note: editForm.note || null,
+        date: new Date(editForm.date).toISOString(),
+      })
+      showDialog('success', 'Service record updated successfully', '', 1500)
+      await fetchServices()
+    }
+    isEditing.value = false
+  } catch (err) {
+    showDialog('danger', 'Error updating record', getErrorMessage(err))
+  }
 }
 
 async function confirmDelete(item: HistoryItem) {
@@ -574,10 +734,12 @@ async function confirmDelete(item: HistoryItem) {
 .card-actions {
   display: flex;
   justify-content: flex-end;
+  gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
   border-top: 1px solid var(--border-muted);
   background-color: var(--bg-primary);
 
+  .btn-edit,
   .btn-delete {
     display: inline-flex;
     align-items: center;
@@ -592,11 +754,147 @@ async function confirmDelete(item: HistoryItem) {
     span {
       font-size: 1.15rem;
     }
+  }
+
+  .btn-edit:hover {
+    color: var(--color-primary-light);
+    background-color: var(--bg-hover);
+  }
+
+  .btn-delete:hover {
+    color: var(--color-danger);
+    background-color: rgba(209, 36, 47, 0.12);
+  }
+}
+
+/* Modal Styling */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  padding: var(--space-md);
+}
+
+.edit-modal {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  width: 100%;
+  max-width: 28rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  box-shadow: var(--shadow-md);
+  max-height: 90vh;
+  overflow-y: auto;
+
+  h3 {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    margin-bottom: var(--space-xs);
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+
+    label {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-top: var(--space-xs);
+    }
+
+    select {
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-md);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-default);
+      outline: none;
+      font-weight: 550;
+      cursor: pointer;
+      min-height: 2.5rem;
+    }
+
+    .custom-date-input {
+      width: 100%;
+      height: 2.5rem;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-md);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-default);
+      outline: none;
+      font-weight: 550;
+      font-family: inherit;
+      transition: border-color 150ms ease;
+
+      &:focus {
+        border-color: var(--color-primary-light);
+      }
+    }
+  }
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+
+  .btn-cancel {
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    transition: color 150ms ease;
 
     &:hover {
-      color: var(--color-danger);
-      background-color: rgba(209, 36, 47, 0.12);
+      color: var(--text-primary);
     }
+  }
+
+  :deep(.icon-label-button) {
+    background-color: var(--color-primary);
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    transition: background-color 150ms ease;
+
+    &:hover {
+      background-color: var(--color-primary-hover);
+    }
+  }
+}
+
+/* Transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 200ms ease;
+  .edit-modal {
+    transition: transform 200ms ease;
+  }
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  .edit-modal {
+    transform: scale(0.95) translateY(10px);
   }
 }
 </style>
