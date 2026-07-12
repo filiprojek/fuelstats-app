@@ -5,20 +5,31 @@
   </Transition>
 
   <div id="vehicles">
-    <div v-for="vehicle in vehicles" :key="vehicle.id" class="vehicle" :class="{ favorite: vehicle.isDefault }">
-      <div class="left-wrp">
-        <div class="v-default">
-          <IconLabelButton icon="star" @click="setVehicleDefault(vehicle.id, vehicle.isDefault)" />
+    <template v-if="vehicles.length > 0">
+      <div v-for="vehicle in vehicles" :key="vehicle.id" class="vehicle" :class="{ favorite: vehicle.isDefault }">
+        <div class="left-wrp">
+          <div class="v-default">
+            <IconLabelButton icon="star" @click="setVehicleDefault(vehicle.id, vehicle.isDefault)" />
+          </div>
+          <div class="v-info">
+            <b>{{ vehicle.name }}</b>
+            <p>{{ vehicle.registrationPlate.toUpperCase() }} • {{ getFuelLabel(vehicle.fuelType) }} • {{ vehicle.note || 'No notes' }}</p>
+          </div>
         </div>
-        <div class="v-info">
-          <b>{{ vehicle.name }}</b>
-          <p>{{ vehicle.registrationPlate.toUpperCase() }} • {{ getFuelLabel(vehicle.fuelType) }} • {{ vehicle.note || 'No notes' }}</p>
+        <div class="v-actions">
+          <IconLabelButton class="i-edit" icon="edit" @click="startEdit(vehicle)" aria-label="Edit vehicle" />
+          <IconLabelButton class="i-delete" icon="delete" @click="deleteVehicle(vehicle)" aria-label="Delete vehicle" />
         </div>
       </div>
-      <div class="v-actions">
-        <IconLabelButton class="i-edit" icon="edit" @click="startEdit(vehicle)" aria-label="Edit vehicle" />
-        <IconLabelButton class="i-delete" icon="delete" @click="deleteVehicle(vehicle)" aria-label="Delete vehicle" />
-      </div>
+    </template>
+    <div v-else class="empty-state">
+      <span class="material-symbols-outlined">directions_car</span>
+      <h3>No vehicles found</h3>
+      <p>Please add a vehicle first to get started.</p>
+      <RouterLink to="/add" class="btn-primary">
+        <span class="material-symbols-outlined">add</span>
+        Add Vehicle
+      </RouterLink>
     </div>
   </div>
 
@@ -341,6 +352,59 @@ async function deleteVehicle(vehicle: Vehicle) {
   opacity: 0;
   .edit-modal {
     transform: scale(0.95) translateY(10px);
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xxl) var(--space-md);
+  text-align: center;
+  background-color: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-default);
+  margin-top: var(--space-md);
+  width: 100%;
+
+  span {
+    font-size: 3rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-md);
+  }
+
+  h3 {
+    margin-bottom: var(--space-xs);
+    font-size: var(--font-size-lg);
+  }
+
+  p {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-lg);
+  }
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background-color: var(--color-primary);
+  color: var(--text-primary);
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-round);
+  text-decoration: none;
+  font-weight: 600;
+  transition: background-color 150ms ease;
+
+  span {
+    font-size: 1.25rem;
+    margin: 0;
+    color: inherit;
+  }
+
+  &:hover {
+    background-color: var(--color-primary-hover);
   }
 }
 </style>

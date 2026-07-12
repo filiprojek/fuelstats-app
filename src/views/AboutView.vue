@@ -368,6 +368,10 @@ const filteredItems = computed(() => {
 
   return list
     .filter((item) => {
+      // Ensure the associated vehicle still exists
+      const vehicleExists = vehicles.value.some((v) => v.id === item.vehicleId)
+      if (!vehicleExists) return false
+
       // Type Filter
       if (activeTab.value !== 'all' && item.type !== activeTab.value) return false
       // Vehicle Filter
