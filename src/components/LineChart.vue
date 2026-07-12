@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,19 +13,33 @@ import { Line } from 'vue-chartjs'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend)
 
-const chartData = {
-  labels: ['2025-01-01', '2025-01-02', '2025-01-03', '2025-01-04', '2025-01-05'],
+const props = withDefaults(
+  defineProps<{
+    labels: string[]
+    data: number[]
+    label: string
+    borderColor?: string
+    backgroundColor?: string
+  }>(),
+  {
+    borderColor: '#4a4458',
+    backgroundColor: '#4a445833',
+  }
+)
+
+const chartData = computed(() => ({
+  labels: props.labels,
   datasets: [
     {
-      label: 'Consumption (L/100km)',
-      data: [6.4, 6.3, 6.5, 6.2, 6.1],
-      borderColor: '#4a4458',
-      backgroundColor: '#4a445833',
+      label: props.label,
+      data: props.data,
+      borderColor: props.borderColor,
+      backgroundColor: props.backgroundColor,
       tension: 0.3,
       fill: false,
     },
   ],
-}
+}))
 
 const chartOptions = {
   responsive: true,
@@ -42,3 +57,4 @@ const chartOptions = {
     <Line :data="chartData" :options="chartOptions" />
   </div>
 </template>
+
