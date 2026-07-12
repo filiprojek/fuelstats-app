@@ -324,6 +324,15 @@ async function fetchServices() {
 async function loadData() {
   isLoading.value = true
   await Promise.all([fetchVehicles(), fetchRefuels(), fetchServices()])
+  
+  // Preselect the default vehicle if one exists
+  const def = vehicles.value.find((v) => v.isDefault)
+  if (def) {
+    selectedVehicleId.value = def.id
+  } else {
+    selectedVehicleId.value = 'all'
+  }
+  
   isLoading.value = false
 }
 
