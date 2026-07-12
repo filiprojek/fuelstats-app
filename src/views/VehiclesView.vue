@@ -202,6 +202,11 @@ async function deleteVehicle(vehicle: Vehicle) {
   margin: 0 var(--space-md);
   gap: var(--space-md);
 
+  @media (min-width: 768px) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  }
+
   .vehicle {
     display: flex;
     flex-direction: row;
@@ -213,6 +218,7 @@ async function deleteVehicle(vehicle: Vehicle) {
     border-radius: var(--radius-md);
     background-color: var(--bg-secondary);
     transition: transform 150ms ease, border-color 150ms ease;
+    width: 100%;
 
     &:hover {
       border-color: var(--color-primary-light);

@@ -213,29 +213,31 @@ const consumptionTrendChartData = computed(() => {
     </section>
 
     <template v-else>
-      <!-- Gas Price Chart -->
-      <section id="gas-price">
-        <h2>Gas price (last 14 refuels)</h2>
-        <LineChart
-          :labels="gasPriceChartData.labels"
-          :data="gasPriceChartData.data"
-          label="Price/L"
-          borderColor="#3fb950"
-          backgroundColor="#3fb95033"
-        />
-      </section>
+      <div class="charts-grid">
+        <!-- Gas Price Chart -->
+        <section id="gas-price">
+          <h2>Gas price (last 14 refuels)</h2>
+          <LineChart
+            :labels="gasPriceChartData.labels"
+            :data="gasPriceChartData.data"
+            label="Price/L"
+            borderColor="#3fb950"
+            backgroundColor="#3fb95033"
+          />
+        </section>
 
-      <!-- Consumption Trend Chart -->
-      <section id="consumption-trend">
-        <h2>Consumption trend</h2>
-        <LineChart
-          :labels="consumptionTrendChartData.labels"
-          :data="consumptionTrendChartData.data"
-          label="L/100km"
-          borderColor="#a29bb2"
-          backgroundColor="#a29bb233"
-        />
-      </section>
+        <!-- Consumption Trend Chart -->
+        <section id="consumption-trend">
+          <h2>Consumption trend</h2>
+          <LineChart
+            :labels="consumptionTrendChartData.labels"
+            :data="consumptionTrendChartData.data"
+            label="L/100km"
+            borderColor="#a29bb2"
+            backgroundColor="#a29bb233"
+          />
+        </section>
+      </div>
     </template>
   </div>
 </template>
@@ -394,6 +396,29 @@ h2 {
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
     margin-bottom: var(--space-sm);
+  }
+}
+
+.charts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+
+  @media (min-width: 768px) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+    margin: 0 var(--space-md);
+
+    section {
+      margin: 0;
+
+      h2,
+      .linechart {
+        margin-left: 0;
+        margin-right: 0;
+      }
+    }
   }
 }
 </style>

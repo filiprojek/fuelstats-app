@@ -5,14 +5,21 @@
   </Transition>
 
   <div class="settings-container">
-    <!-- User Profile Header -->
-    <section class="profile-card">
-      <div class="avatar">
-        <span class="material-symbols-outlined">person</span>
-      </div>
-      <h2>{{ auth.user?.username ?? 'User Profile' }}</h2>
-      <p class="email">{{ auth.user?.email ?? '' }}</p>
-    </section>
+    <div class="settings-sidebar">
+      <!-- User Profile Header -->
+      <section class="profile-card">
+        <div class="avatar">
+          <span class="material-symbols-outlined">person</span>
+        </div>
+        <h2>{{ auth.user?.username ?? 'User Profile' }}</h2>
+        <p class="email">{{ auth.user?.email ?? '' }}</p>
+      </section>
+
+      <!-- Sign Out Button -->
+      <section class="logout-section">
+        <IconLabelButton @click="logout" id="btn-signout" label="Sign Out" icon="logout" inline elevated />
+      </section>
+    </div>
 
     <!-- Data Management Section -->
     <section class="settings-section">
@@ -96,11 +103,6 @@
           </div>
         </div>
       </div>
-    </section>
-
-    <!-- Sign Out Button -->
-    <section class="logout-section">
-      <IconLabelButton @click="logout" id="btn-signout" label="Sign Out" icon="logout" inline elevated />
     </section>
   </div>
 </template>
@@ -276,6 +278,19 @@ async function importServices(event: Event) {
   flex-direction: column;
   gap: var(--space-xl);
   padding-top: var(--space-md);
+
+  @media (min-width: 992px) {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--space-xl);
+    align-items: start;
+  }
+}
+
+.settings-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
 }
 
 .profile-card {
@@ -439,6 +454,10 @@ async function importServices(event: Event) {
   justify-content: center;
   margin-top: var(--space-md);
   margin-bottom: var(--space-xl);
+
+  @media (min-width: 992px) {
+    margin-bottom: 0;
+  }
 }
 
 #btn-signout {

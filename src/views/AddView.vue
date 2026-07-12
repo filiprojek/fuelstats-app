@@ -333,10 +333,11 @@ form {
   display: flex;
   align-items: center;
   flex-direction: column;
-  width: 100vw;
-  margin: 0 var(--space-md);
+  width: 100%;
+  padding: 0 var(--space-md);
   margin-left: auto;
   margin-right: auto;
+  padding-top: var(--space-lg);
 }
 
 .flex-row {
@@ -349,26 +350,42 @@ form {
 form {
   display: flex;
   flex-direction: column;
-  // align-items: center;
   gap: var(--space-sm);
+  width: 100%;
+  max-width: 32rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 
-  max-width: 30rem;
-  width: 90%;
+  @media (max-width: 767px) {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    width: 100%;
+  }
 
   .icon-label-button {
-    margin-top: var(--space-sm);
+    margin-top: var(--space-md);
   }
 }
 
 select {
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-md);
-
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
   color: var(--text-primary);
-
-  border: 1px solid var(--bg-elevated);
+  border: 1px solid var(--border-default);
   outline: none;
+  min-height: 2.5rem;
+  cursor: pointer;
+  transition: border-color 150ms ease;
+
+  &:focus {
+    border-color: var(--color-primary-light);
+  }
 }
 </style>
 

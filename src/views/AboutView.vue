@@ -514,10 +514,22 @@ async function confirmDelete(item: HistoryItem) {
   gap: var(--space-md);
   margin-top: var(--space-sm);
 
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
   #btn-history-type {
     width: 100%;
     max-width: 30rem;
     align-self: center;
+
+    @media (min-width: 768px) {
+      width: auto;
+      max-width: none;
+      align-self: auto;
+    }
   }
 }
 
@@ -528,6 +540,11 @@ async function confirmDelete(item: HistoryItem) {
   width: 100%;
   max-width: 30rem;
   align-self: center;
+
+  @media (min-width: 768px) {
+    max-width: 20rem;
+    align-self: auto;
+  }
 
   label {
     font-size: var(--font-size-sm);
@@ -619,6 +636,12 @@ async function confirmDelete(item: HistoryItem) {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+
+  @media (min-width: 768px) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: var(--space-md);
+  }
 }
 
 .history-card {
@@ -628,6 +651,7 @@ async function confirmDelete(item: HistoryItem) {
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-default);
   overflow: hidden;
+  height: 100%;
 
   &.refuel {
     border-left: 4px solid var(--accent-success);
@@ -676,6 +700,7 @@ async function confirmDelete(item: HistoryItem) {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+  flex-grow: 1;
 }
 
 .vehicle-info {
