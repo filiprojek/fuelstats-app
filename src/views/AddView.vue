@@ -23,9 +23,9 @@
         </option>
       </select>
 
-      <TextInput v-model="formData.liters" id="liters" type="number" placeholder="Liters" />
-      <TextInput v-model="formData.pricePerLiter" id="price_per_liter" type="number" placeholder="Price per liter" />
-      <TextInput v-model="formData.totalPrice" id="total_price" type="number" placeholder="Total price" />
+      <TextInput v-model="formData.liters" @update:modelValue="onLitersUpdate" id="liters" type="number" placeholder="Liters" />
+      <TextInput v-model="formData.pricePerLiter" @update:modelValue="onPriceUpdate" id="price_per_liter" type="number" placeholder="Price per liter" />
+      <TextInput v-model="formData.totalPrice" @update:modelValue="onTotalUpdate" id="total_price" type="number" placeholder="Total price" />
       <TextInput v-model="formData.mileage" id="mileage" type="number" placeholder="Mileage" />
 
       <IconLabelButton icon="local_gas_station" label="Create refuel record" inline elevated />'
@@ -182,6 +182,51 @@ const vehiclePlateModel = computed({
     formData.vehiclePlate = v.toLocaleUpperCase()
   },
 })
+
+function onLitersUpdate(val: string) {
+  formData.liters = val
+  const l = parseFloat(val)
+  const p = parseFloat(formData.pricePerLiter)
+  const t = parseFloat(formData.totalPrice)
+
+  if (!isNaN(l) && l > 0) {
+    if (!isNaN(p)) {
+      formData.totalPrice = String(Math.round(l * p * 100) / 100)
+    } else if (!isNaN(t)) {
+      formData.pricePerLiter = String(Math.round((t / l) * 1000) / 1000)
+    }
+  }
+}
+
+function onPriceUpdate(val: string) {
+  formData.pricePerLiter = val
+  const l = parseFloat(formData.liters)
+  const p = parseFloat(val)
+  const t = parseFloat(formData.totalPrice)
+
+  if (!isNaN(p) && p > 0) {
+    if (!isNaN(l)) {
+      formData.totalPrice = String(Math.round(l * p * 100) / 100)
+    } else if (!isNaN(t)) {
+      formData.liters = String(Math.round((t / p) * 100) / 100)
+    }
+  }
+}
+
+function onTotalUpdate(val: string) {
+  formData.totalPrice = val
+  const l = parseFloat(formData.liters)
+  const p = parseFloat(formData.pricePerLiter)
+  const t = parseFloat(val)
+
+  if (!isNaN(t) && t > 0) {
+    if (!isNaN(l) && l > 0) {
+      formData.pricePerLiter = String(Math.round((t / l) * 1000) / 1000)
+    } else if (!isNaN(p) && p > 0) {
+      formData.liters = String(Math.round((t / p) * 100) / 100)
+    }
+  }
+}
 
 async function handleRefuel() {
   const body = {
