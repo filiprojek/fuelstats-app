@@ -1,14 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend,
-} from 'chart.js'
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend } from 'chart.js'
 import { Line } from 'vue-chartjs'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend)
@@ -24,7 +16,7 @@ const props = withDefaults(
   {
     borderColor: '#4a4458',
     backgroundColor: '#4a445833',
-  }
+  },
 )
 
 const chartData = computed(() => ({
@@ -57,4 +49,3 @@ const chartOptions = {
     <Line :data="chartData" :options="chartOptions" />
   </div>
 </template>
-

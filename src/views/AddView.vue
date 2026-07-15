@@ -25,9 +25,27 @@
         </option>
       </select>
 
-      <TextInput v-model="formData.liters" @update:modelValue="onLitersUpdate" id="liters" type="number" placeholder="Liters" />
-      <TextInput v-model="formData.pricePerLiter" @update:modelValue="onPriceUpdate" id="price_per_liter" type="number" placeholder="Price per liter" />
-      <TextInput v-model="formData.totalPrice" @update:modelValue="onTotalUpdate" id="total_price" type="number" placeholder="Total price" />
+      <TextInput
+        v-model="formData.liters"
+        @update:modelValue="onLitersUpdate"
+        id="liters"
+        type="number"
+        placeholder="Liters"
+      />
+      <TextInput
+        v-model="formData.pricePerLiter"
+        @update:modelValue="onPriceUpdate"
+        id="price_per_liter"
+        type="number"
+        placeholder="Price per liter"
+      />
+      <TextInput
+        v-model="formData.totalPrice"
+        @update:modelValue="onTotalUpdate"
+        id="total_price"
+        type="number"
+        placeholder="Total price"
+      />
       <TextInput v-model="formData.mileage" id="mileage" type="number" placeholder="Mileage" />
       <TextInput v-model="formData.note" id="refuel_note" type="text" placeholder="Note (optional)" />
 
@@ -64,7 +82,7 @@
           Upload Photos
           <input type="file" accept="image/*" multiple @change="handlePhotoUpload" class="hidden-input" />
         </label>
-        
+
         <div v-if="uploadedPhotos.length > 0" class="photo-previews">
           <div v-for="(photo, index) in uploadedPhotos" :key="index" class="photo-preview-item">
             <img :src="photo" alt="Preview" />
@@ -81,6 +99,7 @@
     <form v-if="mode === 'vehicle'" @submit.prevent="handleVehicle">
       <TextInput v-model="formData.vehicleName" id="vehicleName" type="text" placeholder="Name" />
       <TextInput v-model="vehiclePlateModel" id="vehiclePlate" type="text" placeholder="Registration plate" />
+      <TextInput v-model="vehicleVinModel" id="vehicleVin" type="text" placeholder="VIN (optional)" />
 
       <label for="vehicle_fuel_type">Fuel Type</label>
       <select id="vehicle_fuel_type" v-model="formData.fuelType">
@@ -131,7 +150,7 @@ watch(
     } else if (!newType) {
       mode.value = 'refuel'
     }
-  }
+  },
 )
 
 watch(mode, (newMode) => {
@@ -186,6 +205,7 @@ const formData = reactive({
   vehicleId: '',
   vehicleName: '',
   vehiclePlate: '',
+  vehicleVin: '',
   note: '',
   fuelType: '',
   date: getTodayString(),
@@ -229,6 +249,7 @@ function resetForm() {
   formData.cost = ''
   formData.vehicleName = ''
   formData.vehiclePlate = ''
+  formData.vehicleVin = ''
   formData.note = ''
   formData.date = getTodayString()
   uploadedPhotos.value = []
@@ -265,6 +286,13 @@ const vehiclePlateModel = computed({
   get: () => formData.vehiclePlate,
   set: (v: string) => {
     formData.vehiclePlate = v.toLocaleUpperCase()
+  },
+})
+
+const vehicleVinModel = computed({
+  get: () => formData.vehicleVin,
+  set: (v: string) => {
+    formData.vehicleVin = v.toLocaleUpperCase()
   },
 })
 
@@ -363,6 +391,7 @@ async function handleVehicle() {
     name: formData.vehicleName,
     registrationPlate: formData.vehiclePlate,
     fuelType: formData.fuelType,
+    vin: formData.vehicleVin || null,
     note: formData.note || null,
   }
   try {
@@ -393,11 +422,11 @@ form {
   margin: 0 var(--space-md);
 }
 
-#btn-refuel> :deep(.material-symbols-outlined) {
+#btn-refuel > :deep(.material-symbols-outlined) {
   color: green;
 }
 
-#btn-service> :deep(.material-symbols-outlined) {
+#btn-service > :deep(.material-symbols-outlined) {
   color: orange;
 }
 

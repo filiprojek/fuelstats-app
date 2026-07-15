@@ -55,13 +55,7 @@
               inline
               elevated
             />
-            <input
-              type="file"
-              ref="refuelsInput"
-              accept=".csv"
-              style="display: none"
-              @change="importRefuels"
-            />
+            <input type="file" ref="refuelsInput" accept=".csv" style="display: none" @change="importRefuels" />
           </div>
         </div>
 
@@ -93,13 +87,7 @@
               inline
               elevated
             />
-            <input
-              type="file"
-              ref="servicesInput"
-              accept=".csv"
-              style="display: none"
-              @change="importServices"
-            />
+            <input type="file" ref="servicesInput" accept=".csv" style="display: none" @change="importServices" />
           </div>
         </div>
       </div>
@@ -427,7 +415,9 @@ async function importServices(event: Event) {
     font-size: 0.8rem;
     background-color: var(--bg-elevated);
     border: 1px solid var(--border-default);
-    transition: background-color 150ms ease, border-color 150ms ease;
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease;
 
     &:hover {
       background-color: var(--bg-hover);

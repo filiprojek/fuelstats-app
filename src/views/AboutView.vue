@@ -7,12 +7,7 @@
   <div class="history-container">
     <div class="filters">
       <!-- Tab Segment Switch -->
-      <SegmentSwitch
-        id="btn-history-type"
-        v-model="activeTab"
-        :options="tabOptions"
-        aria-label="History type"
-      />
+      <SegmentSwitch id="btn-history-type" v-model="activeTab" :options="tabOptions" aria-label="History type" />
 
       <!-- Vehicle Filter -->
       <div class="vehicle-select-wrp">
@@ -43,12 +38,7 @@
     </div>
 
     <div v-else class="history-list">
-      <div
-        v-for="item in filteredItems"
-        :key="item.id"
-        class="history-card"
-        :class="item.type"
-      >
+      <div v-for="item in filteredItems" :key="item.id" class="history-card" :class="item.type">
         <div class="card-header">
           <div class="type-badge" :class="item.type">
             <span class="material-symbols-outlined">
@@ -150,7 +140,12 @@
             </select>
 
             <TextInput v-model="editForm.liters" id="edit_hist_liters" type="number" placeholder="Liters" />
-            <TextInput v-model="editForm.pricePerLiter" id="edit_hist_price" type="number" placeholder="Price per liter" />
+            <TextInput
+              v-model="editForm.pricePerLiter"
+              id="edit_hist_price"
+              type="number"
+              placeholder="Price per liter"
+            />
             <TextInput v-model="editForm.totalPrice" id="edit_hist_total" type="number" placeholder="Total price" />
           </template>
 
@@ -177,7 +172,12 @@
                 <!-- Existing Saved Photos (URLs) -->
                 <div v-for="(photo, index) in editSavedPhotos" :key="'saved-' + index" class="photo-preview-item">
                   <img :src="getImageUrl(photo)" alt="Saved attachment" />
-                  <button type="button" class="remove-photo-btn" @click="removeSavedPhoto(index)" aria-label="Remove saved photo">
+                  <button
+                    type="button"
+                    class="remove-photo-btn"
+                    @click="removeSavedPhoto(index)"
+                    aria-label="Remove saved photo"
+                  >
                     <span class="material-symbols-outlined">close</span>
                   </button>
                 </div>
@@ -185,7 +185,12 @@
                 <!-- New Uploaded Photos (base64) -->
                 <div v-for="(photo, index) in editNewPhotos" :key="'new-' + index" class="photo-preview-item">
                   <img :src="photo" alt="New upload preview" />
-                  <button type="button" class="remove-photo-btn" @click="removeNewPhoto(index)" aria-label="Remove new photo">
+                  <button
+                    type="button"
+                    class="remove-photo-btn"
+                    @click="removeNewPhoto(index)"
+                    aria-label="Remove new photo"
+                  >
                     <span class="material-symbols-outlined">close</span>
                   </button>
                 </div>
@@ -407,7 +412,7 @@ async function fetchServices() {
 async function loadData() {
   isLoading.value = true
   await Promise.all([fetchVehicles(), fetchRefuels(), fetchServices()])
-  
+
   // Preselect the default vehicle if one exists
   const def = vehicles.value.find((v) => v.isDefault)
   if (def) {
@@ -415,7 +420,7 @@ async function loadData() {
   } else {
     selectedVehicleId.value = 'all'
   }
-  
+
   isLoading.value = false
 }
 
@@ -875,7 +880,9 @@ async function confirmDelete(item: HistoryItem) {
     font-weight: 600;
     padding: var(--space-xs) var(--space-sm);
     border-radius: var(--radius-sm);
-    transition: color 150ms ease, background-color 150ms ease;
+    transition:
+      color 150ms ease,
+      background-color 150ms ease;
 
     span {
       font-size: 1.15rem;
@@ -1038,7 +1045,9 @@ async function confirmDelete(item: HistoryItem) {
   border-radius: var(--radius-md);
   border: 1px solid var(--border-default);
   cursor: pointer;
-  transition: transform 150ms ease, border-color 150ms ease;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease;
 
   &:hover {
     transform: scale(1.05);

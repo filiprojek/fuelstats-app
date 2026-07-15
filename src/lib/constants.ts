@@ -38,4 +38,3 @@ export const SERVICE_TYPES = [
 ] as const
 
 export type ServiceType = (typeof SERVICE_TYPES)[number]['value']
-

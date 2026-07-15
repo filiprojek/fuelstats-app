@@ -23,8 +23,13 @@ const emit = defineEmits<{
 <template>
   <div class="text-input">
     <label :for="id">{{ props.placeholder }}</label>
-    <input :id="props.id" :type="props.type" :placeholder="props.placeholder" :value="props.modelValue"
-      @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)" />
+    <input
+      :id="props.id"
+      :type="props.type"
+      :placeholder="props.placeholder"
+      :value="props.modelValue"
+      @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+    />
   </div>
 </template>
 

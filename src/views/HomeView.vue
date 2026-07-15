@@ -64,7 +64,7 @@ const avgConsumptionAllTime = computed(() => {
   const totalDistance = list[list.length - 1]!.mileage - list[0]!.mileage
   if (totalDistance <= 0) return 'N/A'
 
-  return `${(100 * totalLiters / totalDistance).toFixed(2)} L/100`
+  return `${((100 * totalLiters) / totalDistance).toFixed(2)} L/100`
 })
 
 const consumptionSinceLastRefuel = computed(() => {
@@ -76,7 +76,7 @@ const consumptionSinceLastRefuel = computed(() => {
   const distance = last.mileage - prev.mileage
   if (distance <= 0) return 'N/A'
 
-  return `${(100 * last.liters / distance).toFixed(2)} L/100`
+  return `${((100 * last.liters) / distance).toFixed(2)} L/100`
 })
 
 const distanceSinceLastRefuel = computed(() => {
@@ -137,7 +137,7 @@ const consumptionTrendChartData = computed(() => {
       trendData.push((100 * list[i]!.liters) / distance)
       trendLabels.push(
         new Date(list[i]!.date || list[i]!.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-      );
+      )
     }
   }
 
@@ -289,7 +289,7 @@ h2 {
   gap: var(--space-md);
 }
 
-.card-grid>* {
+.card-grid > * {
   width: 100%;
   min-width: 0;
 }

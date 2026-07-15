@@ -13,7 +13,19 @@
           </div>
           <div class="v-info">
             <b>{{ vehicle.name }}</b>
-            <p>{{ vehicle.registrationPlate.toUpperCase() }} • {{ getFuelLabel(vehicle.fuelType) }} • {{ vehicle.note || 'No notes' }}</p>
+            <p>
+              {{ vehicle.registrationPlate.toUpperCase() }} • {{ getFuelLabel(vehicle.fuelType) }} •
+              {{ vehicle.note || 'No notes' }}
+            </p>
+            <div
+              v-if="vehicle.vin"
+              class="vin-badge-container"
+              @click="copyToClipboard(vehicle.vin)"
+              title="Click to copy VIN to clipboard"
+            >
+              <span class="material-symbols-outlined vin-icon">content_copy</span>
+              <span class="vin-text">VIN: {{ vehicle.vin }}</span>
+            </div>
           </div>
         </div>
         <div class="v-actions">
@@ -42,6 +54,8 @@
           <TextInput v-model="editForm.name" id="edit_name" type="text" placeholder="Name" />
 
           <TextInput v-model="editPlateModel" id="edit_plate" type="text" placeholder="Registration plate" />
+
+          <TextInput v-model="editVinModel" id="edit_vin" type="text" placeholder="VIN (optional)" />
 
           <label for="edit_fuel_type">Fuel Type</label>
           <select id="edit_fuel_type" v-model="editForm.fuelType">
@@ -78,6 +92,7 @@ type Vehicle = {
   name: string
   registrationPlate: string
   fuelType: string
+  vin?: string | null
   isDefault: boolean
   note?: string | null
   createdAt: string
@@ -96,6 +111,7 @@ const editForm = reactive({
   name: '',
   registrationPlate: '',
   fuelType: '',
+  vin: '',
   note: '',
   isDefault: false,
 })
@@ -142,11 +158,28 @@ const editPlateModel = computed({
   },
 })
 
+const editVinModel = computed({
+  get: () => editForm.vin,
+  set: (v: string) => {
+    editForm.vin = v.toUpperCase()
+  },
+})
+
+async function copyToClipboard(text: string) {
+  try {
+    await navigator.clipboard.writeText(text)
+    showDialog('success', 'VIN copied to clipboard', text, 1500)
+  } catch (err) {
+    showDialog('danger', 'Failed to copy VIN', String(err))
+  }
+}
+
 function startEdit(vehicle: Vehicle) {
   editForm.id = vehicle.id
   editForm.name = vehicle.name
   editForm.registrationPlate = vehicle.registrationPlate
   editForm.fuelType = vehicle.fuelType
+  editForm.vin = vehicle.vin || ''
   editForm.note = vehicle.note || ''
   editForm.isDefault = vehicle.isDefault
   isEditing.value = true
@@ -162,6 +195,7 @@ async function saveVehicle() {
       name: editForm.name,
       registrationPlate: editForm.registrationPlate,
       fuelType: editForm.fuelType,
+      vin: editForm.vin || null,
       note: editForm.note,
       isDefault: editForm.isDefault,
     })
@@ -214,7 +248,9 @@ async function deleteVehicle(vehicle: Vehicle) {
     padding: var(--space-md);
     border-radius: var(--radius-md);
     background-color: var(--bg-secondary);
-    transition: transform 150ms ease, border-color 150ms ease;
+    transition:
+      transform 150ms ease,
+      border-color 150ms ease;
     width: 100%;
 
     &:hover {
@@ -408,6 +444,39 @@ async function deleteVehicle(vehicle: Vehicle) {
 
   &:hover {
     background-color: var(--color-primary-hover);
+  }
+}
+
+.v-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.vin-badge-container {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-family: monospace;
+  cursor: pointer;
+  width: fit-content;
+  transition: all 150ms ease;
+
+  &:hover {
+    border-color: var(--color-primary-light);
+    color: var(--text-primary);
+    background-color: rgba(162, 155, 178, 0.1);
+  }
+
+  .vin-icon {
+    font-size: 0.9rem;
   }
 }
 </style>

@@ -38,12 +38,14 @@ const router = createRouter({
       name: 'settings',
       meta: { title: 'Settings', requiresAuth: true },
       component: () => import('../views/SettingsView.vue'),
-    },{
+    },
+    {
       path: '/login',
       name: 'login',
       meta: { title: 'Log In', hideNav: true, hideHeader: true },
       component: () => import('../views/LoginSignupView.vue'),
-    },{
+    },
+    {
       path: '/signup',
       name: 'signup',
       meta: { title: 'Sign Up', hideNav: true, hideHeader: true },
@@ -55,7 +57,6 @@ const router = createRouter({
       name: 'NotFound',
       meta: { title: '404 - Not found', hideNav: true, hideHeader: true },
       component: () => import('../views/NotFoundView.vue'),
-
     },
   ],
 })

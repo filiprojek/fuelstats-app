@@ -1,8 +1,6 @@
 <template>
   <button class="icon-label-button" :class="{ inline: inline, elevated: elevated }" v-bind="$attrs">
-    <span v-if="icon" :class="['material-symbols-outlined', { 'material-fill': !outlined }]">{{
-      icon
-      }}</span>
+    <span v-if="icon" :class="['material-symbols-outlined', { 'material-fill': !outlined }]">{{ icon }}</span>
 
     <slot v-else name="icon" />
 

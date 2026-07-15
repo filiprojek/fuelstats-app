@@ -6,6 +6,7 @@ type Vehicle = {
   name: string
   registrationPlate: string
   fuelType: string
+  vin?: string | null
   isDefault: boolean
   note?: string | null
   createdAt: string
@@ -34,6 +35,7 @@ async function setVehicleDefault(vehicleId: string, vehicleDefaultState: boolean
         name: currentDefault.name,
         registrationPlate: currentDefault.registrationPlate,
         fuelType: currentDefault.fuelType,
+        vin: currentDefault.vin || null,
         note: currentDefault.note || '',
         isDefault: false,
       })
@@ -46,6 +48,7 @@ async function setVehicleDefault(vehicleId: string, vehicleDefaultState: boolean
         name: newDefault.name,
         registrationPlate: newDefault.registrationPlate,
         fuelType: newDefault.fuelType,
+        vin: newDefault.vin || null,
         note: newDefault.note || '',
         isDefault: true,
       })
@@ -59,4 +62,3 @@ async function setVehicleDefault(vehicleId: string, vehicleDefaultState: boolean
 export function useVehicles() {
   return { vehicles, fetchVehicles, setVehicleDefault }
 }
-

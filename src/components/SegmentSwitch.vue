@@ -36,13 +36,24 @@ function select(value: string) {
 </script>
 
 <template>
-  <div class="segmented" role="tablist" :aria-label="ariaLabel ?? 'Select option'"
-    :style="{ gridTemplateColumns: `repeat(${options.length}, 1fr)` }">
+  <div
+    class="segmented"
+    role="tablist"
+    :aria-label="ariaLabel ?? 'Select option'"
+    :style="{ gridTemplateColumns: `repeat(${options.length}, 1fr)` }"
+  >
     <span class="indicator" :style="indicatorStyle" aria-hidden="true" />
 
-    <button v-for="opt in options" :key="opt.value" class="btn"
-      :class="[{ active: opt.value === modelValue }, opt.accent ? `accent-${opt.accent}` : null]" type="button"
-      role="tab" :aria-selected="opt.value === modelValue" @click="select(opt.value)">
+    <button
+      v-for="opt in options"
+      :key="opt.value"
+      class="btn"
+      :class="[{ active: opt.value === modelValue }, opt.accent ? `accent-${opt.accent}` : null]"
+      type="button"
+      role="tab"
+      :aria-selected="opt.value === modelValue"
+      @click="select(opt.value)"
+    >
       <span v-if="opt.icon" class="material-symbols-outlined" aria-hidden="true">
         {{ opt.icon }}
       </span>
@@ -158,7 +169,6 @@ function select(value: string) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .indicator,
   .btn,
   .btn .material-symbols-outlined {

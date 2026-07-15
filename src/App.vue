@@ -264,7 +264,7 @@ main {
 @media (min-width: 768px) {
   header {
     margin: var(--space-xl) var(--space-md) var(--space-lg) var(--space-md);
-    
+
     h1 {
       font-size: 2.25rem;
       font-weight: 800;
