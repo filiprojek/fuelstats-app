@@ -13,7 +13,7 @@ const router = createRouter({
       component: HomeView,
     },
     {
-      path: '/add',
+      path: '/add/:type?',
       name: 'add',
       meta: { title: 'Add record', requiresAuth: true },
       // route level code-splitting

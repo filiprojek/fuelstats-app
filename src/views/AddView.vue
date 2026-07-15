@@ -97,8 +97,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import SegmentSwitch, { type SegmentOption } from '@/components/SegmentSwitch.vue'
 import TextInput from '@/components/TextInput.vue'
@@ -108,15 +108,44 @@ import api from '@/lib/api'
 import { useVehicles } from '@/composables/useVehicles'
 import { FUEL_TYPES, SERVICE_TYPES } from '@/lib/constants'
 
+const router = useRouter()
+const route = useRoute()
+
 type Mode = 'refuel' | 'service' | 'vehicle'
-const mode = ref<Mode>('refuel')
+
+const getInitialMode = (): Mode => {
+  const type = route.params.type
+  if (type === 'vehicle' || type === 'service' || type === 'refuel') {
+    return type as Mode
+  }
+  return 'refuel'
+}
+
+const mode = ref<Mode>(getInitialMode())
+
+watch(
+  () => route.params.type,
+  (newType) => {
+    if (newType === 'vehicle' || newType === 'service' || newType === 'refuel') {
+      mode.value = newType as Mode
+    } else if (!newType) {
+      mode.value = 'refuel'
+    }
+  }
+)
+
+watch(mode, (newMode) => {
+  if (route.params.type !== newMode) {
+    router.replace(`/add/${newMode}`)
+  }
+})
+
 const options: SegmentOption<Mode>[] = [
   { value: 'refuel', label: 'Refuel', icon: 'local_gas_station', accent: 'success' },
   { value: 'service', label: 'Service', icon: 'build', accent: 'warning' },
   { value: 'vehicle', label: 'Vehicle', icon: 'directions_car', accent: 'primary-light' },
 ]
 
-const router = useRouter()
 const uploadedPhotos = ref<string[]>([])
 
 function handlePhotoUpload(event: Event) {

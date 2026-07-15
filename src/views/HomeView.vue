@@ -158,7 +158,7 @@ const consumptionTrendChartData = computed(() => {
     <span class="material-symbols-outlined">directions_car</span>
     <h3>No vehicles found</h3>
     <p>Add a vehicle to start tracking your fuel consumption and stats.</p>
-    <RouterLink to="/add" class="btn-primary">
+    <RouterLink to="/add/vehicle" class="btn-primary">
       <span class="material-symbols-outlined">add</span>
       Add Vehicle
     </RouterLink>
