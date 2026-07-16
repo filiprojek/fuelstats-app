@@ -9,15 +9,31 @@
       <!-- Tab Segment Switch -->
       <SegmentSwitch id="btn-history-type" v-model="activeTab" :options="tabOptions" aria-label="History type" />
 
-      <!-- Vehicle Filter -->
-      <div class="vehicle-select-wrp">
-        <label for="history_vehicle">Filter by Vehicle</label>
-        <select id="history_vehicle" v-model="selectedVehicleId">
-          <option value="all">All Vehicles</option>
-          <option v-for="vehicle in vehicles" :key="vehicle.id" :value="vehicle.id">
-            {{ vehicle.name }} ({{ vehicle.registrationPlate.toUpperCase() }})
-          </option>
-        </select>
+      <!-- Filters & Sorting Controls -->
+      <div class="filter-controls">
+        <!-- Vehicle Filter -->
+        <div class="vehicle-select-wrp">
+          <label for="history_vehicle">Filter by Vehicle</label>
+          <select id="history_vehicle" v-model="selectedVehicleId">
+            <option value="all">All Vehicles</option>
+            <option v-for="vehicle in vehicles" :key="vehicle.id" :value="vehicle.id">
+              {{ vehicle.name }} ({{ vehicle.registrationPlate.toUpperCase() }})
+            </option>
+          </select>
+        </div>
+
+        <!-- Sort By -->
+        <div class="sort-select-wrp">
+          <label for="history_sort">Sort by</label>
+          <select id="history_sort" v-model="sortBy">
+            <option value="date-desc">Date (Newest first)</option>
+            <option value="date-asc">Date (Oldest first)</option>
+            <option value="cost-desc">Cost (Highest first)</option>
+            <option value="cost-asc">Cost (Lowest first)</option>
+            <option value="mileage-desc">Mileage (Highest first)</option>
+            <option value="mileage-asc">Mileage (Lowest first)</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -289,6 +305,7 @@ type HistoryItem = {
 // Refs
 const activeTab = ref<HistoryType>('all')
 const selectedVehicleId = ref<string>('all')
+const sortBy = ref<'date-desc' | 'date-asc' | 'cost-desc' | 'cost-asc' | 'mileage-desc' | 'mileage-asc'>('date-desc')
 const refuels = ref<RefuelRecord[]>([])
 const services = ref<ServiceRecord[]>([])
 const isLoading = ref(true)
@@ -467,7 +484,31 @@ const filteredItems = computed(() => {
       if (selectedVehicleId.value !== 'all' && item.vehicleId !== selectedVehicleId.value) return false
       return true
     })
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .sort((a, b) => {
+      if (sortBy.value === 'date-desc') {
+        return new Date(b.date).getTime() - new Date(a.date).getTime()
+      }
+      if (sortBy.value === 'date-asc') {
+        return new Date(a.date).getTime() - new Date(b.date).getTime()
+      }
+      if (sortBy.value === 'cost-desc') {
+        const costA = a.type === 'refuel' ? a.totalPrice || 0 : a.cost || 0
+        const costB = b.type === 'refuel' ? b.totalPrice || 0 : b.cost || 0
+        return costB - costA
+      }
+      if (sortBy.value === 'cost-asc') {
+        const costA = a.type === 'refuel' ? a.totalPrice || 0 : a.cost || 0
+        const costB = b.type === 'refuel' ? b.totalPrice || 0 : b.cost || 0
+        return costA - costB
+      }
+      if (sortBy.value === 'mileage-desc') {
+        return (b.mileage || 0) - (a.mileage || 0)
+      }
+      if (sortBy.value === 'mileage-asc') {
+        return (a.mileage || 0) - (b.mileage || 0)
+      }
+      return 0
+    })
 })
 
 // UI Helpers
@@ -624,17 +665,30 @@ async function confirmDelete(item: HistoryItem) {
   }
 }
 
-.vehicle-select-wrp {
+.filter-controls {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
+  flex-direction: row;
+  gap: var(--space-md);
   width: 100%;
   max-width: 30rem;
   align-self: center;
 
   @media (min-width: 768px) {
-    max-width: 20rem;
+    max-width: none;
+    width: auto;
     align-self: auto;
+  }
+}
+
+.sort-select-wrp,
+.vehicle-select-wrp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  flex: 1;
+
+  @media (min-width: 768px) {
+    min-width: 12rem;
   }
 
   label {
@@ -653,6 +707,8 @@ async function confirmDelete(item: HistoryItem) {
     cursor: pointer;
     font-weight: 550;
     transition: border-color 150ms ease;
+    width: 100%;
+    min-height: 2.5rem;
 
     &:focus {
       border-color: var(--color-primary-light);
