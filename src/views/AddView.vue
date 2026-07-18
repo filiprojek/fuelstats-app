@@ -66,9 +66,16 @@
       <label for="service_type">Service type</label>
       <select id="service_type" v-model="formData.serviceType">
         <option disabled selected value="select-an-option">-- select an option --</option>
-        <option v-for="serviceType in SERVICE_TYPES" :key="serviceType.value" :value="serviceType.value">
-          {{ serviceType.label }}
-        </option>
+        <optgroup label="Standard Tasks">
+          <option v-for="serviceType in SERVICE_TYPES" :key="serviceType.value" :value="serviceType.value">
+            {{ serviceType.label }}
+          </option>
+        </optgroup>
+        <optgroup v-if="serviceTasks.length > 0" label="Maintenance Tracker Tasks">
+          <option v-for="task in serviceTasks" :key="task._id" :value="task.name">
+            {{ task.name }}
+          </option>
+        </optgroup>
       </select>
 
       <TextInput v-model="formData.cost" id="cost" type="number" placeholder="Cost" />
@@ -166,6 +173,7 @@ const options: SegmentOption<Mode>[] = [
 ]
 
 const uploadedPhotos = ref<string[]>([])
+const serviceTasks = ref<any[]>([])
 
 function handlePhotoUpload(event: Event) {
   const files = (event.target as HTMLInputElement).files
@@ -270,16 +278,47 @@ const { vehicles, fetchVehicles } = useVehicles()
 onMounted(async () => {
   await fetchVehicles()
 
-  // set default values for selects in form
-  const def = vehicles.value.find((v) => v.isDefault)
-  if (def && !formData.vehicleId) {
-    formData.vehicleId = def.id
-    formData.fuelType = def.fuelType
-  } else {
-    formData.vehicleId = 'select-an-option'
-    formData.fuelType = 'select-an-option'
+  // Fetch service tasks list
+  try {
+    const res = await api.get('/vehicles/service-tasks')
+    serviceTasks.value = res.data
+  } catch (err) {
+    console.error('Failed to load service tasks:', err)
   }
-  formData.serviceType = 'select-an-option'
+
+  // Pre-fill query parameters if present
+  if (route.query.vehicleId) {
+    const found = vehicles.value.find(v => v.id === route.query.vehicleId)
+    if (found) {
+      formData.vehicleId = found.id
+      formData.fuelType = found.fuelType
+    }
+  } else {
+    const def = vehicles.value.find((v) => v.isDefault)
+    if (def) {
+      formData.vehicleId = def.id
+      formData.fuelType = def.fuelType
+    } else {
+      formData.vehicleId = 'select-an-option'
+      formData.fuelType = 'select-an-option'
+    }
+  }
+
+  if (route.query.serviceType) {
+    formData.serviceType = route.query.serviceType as string
+  } else {
+    formData.serviceType = 'select-an-option'
+  }
+
+  if (route.query.odometer) {
+    formData.mileage = String(route.query.odometer)
+  }
+
+  if (route.query.date) {
+    formData.date = String(route.query.date)
+  } else {
+    formData.date = getTodayString()
+  }
 })
 
 const vehiclePlateModel = computed({

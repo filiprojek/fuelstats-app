@@ -83,16 +83,61 @@
               icon="upload"
               label="Import CSV"
               class="btn-action btn-import-warning"
-              @click="triggerServicesInput"
+              @click="openImportModal"
               inline
               elevated
             />
-            <input type="file" ref="servicesInput" accept=".csv" style="display: none" @change="importServices" />
           </div>
         </div>
       </div>
     </section>
   </div>
+
+  <!-- Service Import Modal (Wizard) -->
+  <Transition name="fade">
+    <div class="modal-backdrop" v-if="isImportModalOpen" @click.self="closeImportModal">
+      <div class="edit-modal import-modal">
+        <h3>Import Service Records</h3>
+        <p class="modal-sub">Import records from a CSV file into a selected vehicle.</p>
+        
+        <form @submit.prevent="handleImportSubmit">
+          <label for="import_vehicle">1. Select Target Vehicle</label>
+          <select id="import_vehicle" v-model="importVehicleId">
+            <option v-for="vehicle in vehicles" :key="vehicle.id" :value="vehicle.id">
+              {{ vehicle.name }} ({{ vehicle.registrationPlate.toUpperCase() }})
+            </option>
+          </select>
+          
+          <label>2. Choose CSV File</label>
+          <div class="file-drop-area" :class="{ 'has-file': !!importFile }">
+            <span class="material-symbols-outlined file-icon">
+              {{ importFile ? 'draft' : 'upload_file' }}
+            </span>
+            <div class="file-info" v-if="importFile">
+              <span class="file-name">{{ importFile.name }}</span>
+              <span class="file-size">{{ formatFileSize(importFile.size) }}</span>
+            </div>
+            <div class="file-prompt" v-else>
+              <span>Click to select CSV file</span>
+            </div>
+            <input type="file" accept=".csv" @change="onImportFileChange" class="file-input-field" />
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" @click="closeImportModal" :disabled="isImporting">Cancel</button>
+            <IconLabelButton
+              type="submit"
+              icon="upload"
+              label="Start Import"
+              inline
+              elevated
+              :disabled="!importVehicleId || !importFile || isImporting"
+            />
+          </div>
+        </form>
+      </div>
+    </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
@@ -234,28 +279,60 @@ async function exportServices() {
   }
 }
 
-// Services Import
-async function importServices(event: Event) {
+// Services Import Wizard State
+const isImportModalOpen = ref(false)
+const importVehicleId = ref('')
+const importFile = ref<File | null>(null)
+const isImporting = ref(false)
+
+function openImportModal() {
+  isImportModalOpen.value = true
+  importVehicleId.value = defaultVehicle.value?.id || vehicles.value[0]?.id || ''
+  importFile.value = null
+}
+
+function closeImportModal() {
+  if (isImporting.value) return
+  isImportModalOpen.value = false
+  importFile.value = null
+}
+
+function onImportFileChange(event: Event) {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
-  if (!file) return
+  if (file) {
+    importFile.value = file
+  }
+}
 
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+async function handleImportSubmit() {
+  if (!importFile.value || !importVehicleId.value) return
+  isImporting.value = true
+  
   const reader = new FileReader()
   reader.onload = async (e) => {
     const csvText = e.target?.result as string
     try {
-      const fallbackQuery = defaultVehicle.value ? `?vehicleId=${defaultVehicle.value.id}` : ''
-      await api.post(`/services/import${fallbackQuery}`, csvText, {
+      await api.post(`/services/import?vehicleId=${importVehicleId.value}`, csvText, {
         headers: { 'Content-Type': 'text/csv' },
       })
       showDialog('success', 'Service records imported successfully', '')
-      target.value = ''
+      closeImportModal()
     } catch (err) {
       showDialog('danger', 'Import failed', getErrorMessage(err))
-      target.value = ''
+    } finally {
+      isImporting.value = false
     }
   }
-  reader.readAsText(file)
+  reader.readAsText(importFile.value)
 }
 </script>
 
@@ -459,6 +536,200 @@ async function importServices(event: Event) {
 
   &:hover {
     background-color: var(--color-danger-hover);
+  }
+}
+
+/* Import Modal Styles */
+.modal-sub {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-top: -0.25rem;
+  margin-bottom: var(--space-xs);
+  text-align: left;
+}
+
+.file-drop-area {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl) var(--space-md);
+  text-align: center;
+  cursor: pointer;
+  background-color: var(--bg-primary);
+  transition: border-color 150ms ease, background-color 150ms ease;
+  margin-top: var(--space-xs);
+
+  &:hover {
+    border-color: var(--color-primary-light);
+    background-color: rgba(162, 155, 178, 0.05);
+  }
+
+  &.has-file {
+    border-color: var(--color-success);
+    border-style: solid;
+    background-color: rgba(31, 136, 61, 0.02);
+  }
+
+  .file-icon {
+    font-size: 2.5rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-sm);
+  }
+
+  .file-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    
+    .file-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      word-break: break-all;
+    }
+    
+    .file-size {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+  }
+
+  .file-prompt {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 550;
+  }
+
+  .file-input-field {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+}
+
+/* Modal Styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  padding: var(--space-md);
+}
+
+.edit-modal {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  width: 100%;
+  max-width: 28rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  box-shadow: var(--shadow-md);
+
+  h3 {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    margin-bottom: var(--space-xs);
+    text-align: left;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+
+    label {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-top: var(--space-xs);
+      text-align: left;
+      display: block;
+    }
+
+    select {
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-md);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-default);
+      outline: none;
+      font-weight: 550;
+      cursor: pointer;
+      min-height: 2.5rem;
+      width: 100%;
+      text-align: left;
+    }
+  }
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+
+  .btn-cancel {
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    transition: color 150ms ease;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--text-primary);
+    }
+  }
+
+  :deep(.icon-label-button) {
+    background-color: var(--color-primary);
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    transition: background-color 150ms ease;
+
+    &:hover {
+      background-color: var(--color-primary-hover);
+    }
+  }
+}
+
+/* Transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 200ms ease;
+  .edit-modal {
+    transition: transform 200ms ease;
+  }
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  .edit-modal {
+    transform: scale(0.95) translateY(10px);
   }
 }
 </style>

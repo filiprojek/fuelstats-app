@@ -29,6 +29,7 @@
           </div>
         </div>
         <div class="v-actions">
+          <IconLabelButton class="i-service" icon="build" @click="openServicePlans(vehicle)" aria-label="Service plans" />
           <IconLabelButton class="i-edit" icon="edit" @click="startEdit(vehicle)" aria-label="Edit vehicle" />
           <IconLabelButton class="i-delete" icon="delete" @click="deleteVehicle(vehicle)" aria-label="Delete vehicle" />
         </div>
@@ -69,6 +70,53 @@
           <div class="modal-actions">
             <button type="button" class="btn-cancel" @click="closeEdit">Cancel</button>
             <IconLabelButton type="submit" icon="save" label="Save Changes" inline elevated />
+          </div>
+        </form>
+      </div>
+    </div>
+  </Transition>
+
+  <!-- Service Plans Modal -->
+  <Transition name="fade">
+    <div class="modal-backdrop" v-if="isServicePlansOpen" @click.self="closeServicePlans">
+      <div class="edit-modal service-plans-modal">
+        <h3>Service Plans: {{ selectedVehicleForPlans?.name }}</h3>
+        
+        <div v-if="isLoadingPlans" class="plans-loading">
+          <span class="material-symbols-outlined spin">sync</span>
+          <span>Loading service plans...</span>
+        </div>
+        
+        <form v-else @submit.prevent="saveServicePlans">
+          <div class="plans-list">
+            <div v-for="task in serviceTasksList" :key="task._id" class="plan-row">
+              <span class="task-name">{{ task.name }}</span>
+              <div class="inputs-grp" v-if="vehicleIntervals[task._id]">
+                <div class="input-wrp">
+                  <input
+                    type="number"
+                    v-model="vehicleIntervals[task._id].intervalKm"
+                    placeholder="None"
+                    min="0"
+                  />
+                  <span class="unit">km</span>
+                </div>
+                <div class="input-wrp">
+                  <input
+                    type="number"
+                    v-model="vehicleIntervals[task._id].intervalMonths"
+                    placeholder="None"
+                    min="0"
+                  />
+                  <span class="unit">mths</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" @click="closeServicePlans">Cancel</button>
+            <IconLabelButton type="submit" icon="save" label="Save Plans" inline elevated :disabled="isSavingPlans" />
           </div>
         </form>
       </div>
@@ -187,6 +235,76 @@ function startEdit(vehicle: Vehicle) {
 
 function closeEdit() {
   isEditing.value = false
+}
+
+// Service Plans State
+const isServicePlansOpen = ref(false)
+const isLoadingPlans = ref(false)
+const isSavingPlans = ref(false)
+const selectedVehicleForPlans = ref<Vehicle | null>(null)
+const serviceTasksList = ref<any[]>([])
+const vehicleIntervals = ref<any>({})
+
+async function openServicePlans(vehicle: Vehicle) {
+  selectedVehicleForPlans.value = vehicle
+  isServicePlansOpen.value = true
+  isLoadingPlans.value = true
+  try {
+    const [tasksRes, intervalsRes] = await Promise.all([
+      api.get('/vehicles/service-tasks'),
+      api.get(`/vehicles/${vehicle.id}/service-intervals`),
+    ])
+    serviceTasksList.value = tasksRes.data
+    
+    // Initialize intervals state
+    const intervalsMap: Record<string, { intervalKm: string; intervalMonths: string }> = {}
+    for (const task of tasksRes.data) {
+      intervalsMap[task._id] = { intervalKm: '', intervalMonths: '' }
+    }
+    
+    // Populate with existing interval settings
+    for (const val of intervalsRes.data) {
+      const currentMap = intervalsMap[val.serviceTaskId]
+      if (currentMap) {
+        currentMap.intervalKm = val.intervalKm !== null && val.intervalKm !== undefined ? String(val.intervalKm) : ''
+        currentMap.intervalMonths = val.intervalMonths !== null && val.intervalMonths !== undefined ? String(val.intervalMonths) : ''
+      }
+    }
+    
+    vehicleIntervals.value = intervalsMap
+  } catch (err) {
+    showDialog('danger', 'Error loading service plans', getErrorMessage(err))
+    closeServicePlans()
+  } finally {
+    isLoadingPlans.value = false
+  }
+}
+
+function closeServicePlans() {
+  isServicePlansOpen.value = false
+  selectedVehicleForPlans.value = null
+  serviceTasksList.value = []
+  vehicleIntervals.value = {}
+}
+
+async function saveServicePlans() {
+  if (!selectedVehicleForPlans.value) return
+  isSavingPlans.value = true
+  try {
+    const payload = Object.entries(vehicleIntervals.value as Record<string, any>).map(([taskId, val]) => ({
+      serviceTaskId: taskId,
+      intervalKm: val.intervalKm ? Number(val.intervalKm) : null,
+      intervalMonths: val.intervalMonths ? Number(val.intervalMonths) : null,
+    }))
+    
+    await api.post(`/vehicles/${selectedVehicleForPlans.value.id}/service-intervals`, { intervals: payload })
+    showDialog('success', 'Service plans updated successfully', '', 1500)
+    closeServicePlans()
+  } catch (err) {
+    showDialog('danger', 'Error saving service plans', getErrorMessage(err))
+  } finally {
+    isSavingPlans.value = false
+  }
 }
 
 async function saveVehicle() {
@@ -477,6 +595,104 @@ async function deleteVehicle(vehicle: Vehicle) {
 
   .vin-icon {
     font-size: 0.9rem;
+  }
+}
+
+.vehicle .v-actions .i-service :deep(.material-symbols-outlined) {
+  color: var(--color-warning);
+}
+
+/* Service Plans Modal styles */
+.service-plans-modal {
+  max-width: 32rem !important;
+}
+
+.plans-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  color: var(--text-secondary);
+  padding: var(--space-xl);
+  
+  .spin {
+    animation: spin 1.5s linear infinite;
+  }
+}
+
+.plans-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  max-height: 24rem;
+  overflow-y: auto;
+  padding-right: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.plan-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-xs) 0;
+  border-bottom: 1px solid var(--border-default);
+  gap: var(--space-md);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .task-name {
+    font-weight: 550;
+    font-size: 0.95rem;
+    flex: 1;
+    text-align: left;
+  }
+
+  .inputs-grp {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-sm);
+    
+    .input-wrp {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      background-color: var(--bg-primary);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-md);
+      padding: 0.25rem 0.5rem;
+      width: 7rem;
+      
+      input {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--text-primary);
+        width: 100%;
+        font-size: 0.875rem;
+        font-weight: 550;
+        text-align: right;
+        padding: 0;
+        min-height: auto;
+        
+        /* Remove spinner arrows */
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        -moz-appearance: textfield;
+      }
+      
+      .unit {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-left: 0.25rem;
+        font-weight: 600;
+      }
+    }
   }
 }
 </style>

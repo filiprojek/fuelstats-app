@@ -4,6 +4,8 @@ import api from '@/lib/api'
 import { useVehicles } from '@/composables/useVehicles'
 import StatCard from '@/components/StatCard.vue'
 import LineChart from '@/components/LineChart.vue'
+import ServiceAlerts from '@/components/ServiceAlerts.vue'
+import ServiceOverview from '@/components/ServiceOverview.vue'
 
 // Types
 type RefuelRecord = {
@@ -178,6 +180,11 @@ const consumptionTrendChartData = computed(() => {
       </div>
     </section>
 
+    <!-- Service Alerts -->
+    <div class="service-alerts-wrapper">
+      <ServiceAlerts :vehicleId="defaultVehicle.id" />
+    </div>
+
     <!-- Stats Section -->
     <section id="refuel-stats">
       <h2>Refuel stats</h2>
@@ -239,6 +246,11 @@ const consumptionTrendChartData = computed(() => {
         </section>
       </div>
     </template>
+
+    <!-- Service Schedule Overview -->
+    <div class="service-alerts-wrapper" v-if="defaultVehicle">
+      <ServiceOverview :vehicleId="defaultVehicle.id" />
+    </div>
   </div>
 </template>
 
@@ -247,7 +259,8 @@ h2,
 .card-grid,
 #default-car-card,
 .linechart,
-.info-card {
+.info-card,
+.service-alerts-wrapper {
   margin: 0 var(--space-md);
 }
 
