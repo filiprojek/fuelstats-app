@@ -114,8 +114,9 @@ function getProgressPercent(item: any): number {
   let percentKm = 0
   let percentTime = 0
 
-  if (item.intervalKm !== null && item.lastServiceOdometer !== null) {
-    const elapsed = currentOdometer.value - item.lastServiceOdometer
+  if (item.intervalKm !== null) {
+    const baseOdo = item.lastServiceOdometer !== null ? item.lastServiceOdometer : 0
+    const elapsed = currentOdometer.value - baseOdo
     percentKm = (elapsed / item.intervalKm) * 100
   }
 
