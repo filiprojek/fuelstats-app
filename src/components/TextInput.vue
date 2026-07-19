@@ -39,6 +39,8 @@ const emit = defineEmits<{
   flex-direction: column;
   gap: var(--space-sm);
   text-align: left;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 label {
@@ -47,6 +49,11 @@ label {
 }
 
 input {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-md);
 
@@ -55,11 +62,40 @@ input {
 
   border: 1px solid var(--bg-elevated);
   outline: none;
+  font-family: inherit;
+  font-size: 1rem;
 
   transition:
     border-color 150ms ease,
     background-color 150ms ease,
     box-shadow 150ms ease;
+}
+
+/* Fix iOS Mobile & WebKit date input width & alignment collapse */
+input[type='date'],
+input[type='datetime-local'] {
+  width: 100%;
+  max-width: 100%;
+  min-height: 44px;
+  display: block;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+
+  &::-webkit-date-and-time-value {
+    text-align: left;
+    min-height: 1.2em;
+  }
+
+  &::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: invert(0.8);
+    opacity: 0.85;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
 }
 
 /* Hover (desktop only, harmless on mobile) */
@@ -80,7 +116,7 @@ input::placeholder {
   opacity: 0.7;
 }
 
-/* Disabled (future-proof) */
+/* Disabled */
 input:disabled {
   opacity: 0.5;
   cursor: not-allowed;

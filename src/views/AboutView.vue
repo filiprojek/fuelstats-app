@@ -1056,6 +1056,9 @@ async function confirmDelete(item: HistoryItem) {
 
     .custom-date-input {
       width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
       height: 2.5rem;
       padding: var(--space-sm) var(--space-md);
       border-radius: var(--radius-md);
@@ -1065,7 +1068,19 @@ async function confirmDelete(item: HistoryItem) {
       outline: none;
       font-weight: 550;
       font-family: inherit;
+      -webkit-appearance: none;
+      appearance: none;
       transition: border-color 150ms ease;
+
+      &::-webkit-date-and-time-value {
+        text-align: left;
+        min-height: 1.2em;
+      }
+
+      &::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        filter: invert(0.8);
+      }
 
       &:focus {
         border-color: var(--color-primary-light);
