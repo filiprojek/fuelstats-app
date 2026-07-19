@@ -58,10 +58,10 @@
         <div class="card-header">
           <div class="type-badge" :class="item.type">
             <span class="material-symbols-outlined">
-              {{ item.type === 'refuel' ? 'local_gas_station' : 'build' }}
+              {{ item.type === 'refuel' ? 'local_gas_station' : item.type === 'odometer' ? 'speed' : 'build' }}
             </span>
             <span class="type-text">
-              {{ item.type === 'refuel' ? 'Refuel' : getServiceLabel(item.serviceType || '') }}
+              {{ item.type === 'refuel' ? 'Refuel' : item.type === 'odometer' ? 'Odometer Log' : getServiceLabel(item.serviceType || '') }}
             </span>
           </div>
           <span class="date">{{ formatDate(item.date) }}</span>
@@ -284,11 +284,21 @@ type ServiceRecord = {
   createdAt: string
 }
 
-type HistoryType = 'all' | 'refuel' | 'service'
+type OdometerRecord = {
+  id: string
+  userId: string
+  vehicleId: string
+  mileage: number
+  note: string | null
+  date: string
+  createdAt: string
+}
+
+type HistoryType = 'all' | 'refuel' | 'service' | 'odometer'
 
 type HistoryItem = {
   id: string
-  type: 'refuel' | 'service'
+  type: 'refuel' | 'service' | 'odometer'
   date: string
   vehicleId: string
   note: string | null
@@ -299,7 +309,7 @@ type HistoryItem = {
   cost?: number
   serviceType?: string
   photos?: string[]
-  data: RefuelRecord | ServiceRecord
+  data: RefuelRecord | ServiceRecord | OdometerRecord
 }
 
 // Refs
@@ -308,11 +318,12 @@ const selectedVehicleId = ref<string>('all')
 const sortBy = ref<'date-desc' | 'date-asc' | 'cost-desc' | 'cost-asc' | 'mileage-desc' | 'mileage-asc'>('date-desc')
 const refuels = ref<RefuelRecord[]>([])
 const services = ref<ServiceRecord[]>([])
+const odometers = ref<OdometerRecord[]>([])
 const isLoading = ref(true)
 
 // Edit State
 const isEditing = ref(false)
-const editType = ref<'refuel' | 'service'>('refuel')
+const editType = ref<'refuel' | 'service' | 'odometer'>('refuel')
 const editId = ref('')
 const editSavedPhotos = ref<string[]>([])
 const editNewPhotos = ref<string[]>([])
@@ -381,6 +392,7 @@ const tabOptions: SegmentOption<HistoryType>[] = [
   { value: 'all', label: 'All', icon: 'list', accent: 'primary-light' },
   { value: 'refuel', label: 'Refuels', icon: 'local_gas_station', accent: 'success' },
   { value: 'service', label: 'Services', icon: 'build', accent: 'warning' },
+  { value: 'odometer', label: 'Odometer', icon: 'speed', accent: 'primary-light' },
 ]
 
 // Vehicles Composable
@@ -426,9 +438,18 @@ async function fetchServices() {
   }
 }
 
+async function fetchOdometers() {
+  try {
+    const res = await api.get('/odometer')
+    odometers.value = res.data
+  } catch (err) {
+    console.error('Failed to fetch odometers:', err)
+  }
+}
+
 async function loadData() {
   isLoading.value = true
-  await Promise.all([fetchVehicles(), fetchRefuels(), fetchServices()])
+  await Promise.all([fetchVehicles(), fetchRefuels(), fetchServices(), fetchOdometers()])
 
   // Preselect the default vehicle if one exists
   const def = vehicles.value.find((v) => v.isDefault)
@@ -469,6 +490,15 @@ const filteredItems = computed(() => {
       serviceType: s.serviceType,
       photos: s.photos || [],
       data: s,
+    })),
+    ...odometers.value.map((o) => ({
+      id: o.id,
+      type: 'odometer' as const,
+      date: o.date || o.createdAt || '',
+      vehicleId: o.vehicleId,
+      note: o.note,
+      mileage: o.mileage,
+      data: o,
     })),
   ]
 
@@ -512,9 +542,9 @@ const filteredItems = computed(() => {
 })
 
 // UI Helpers
-function getVehicleName(id: string): string {
-  const found = vehicles.value.find((v) => v.id === id)
-  return found ? found.name : 'Unknown Vehicle'
+function getVehicleName(vehicleId: string): string {
+  const v = vehicles.value.find((veh) => veh.id === vehicleId)
+  return v ? v.name : 'Unknown Vehicle'
 }
 
 function getServiceLabel(val: string): string {
@@ -559,7 +589,7 @@ function startEdit(item: HistoryItem) {
     editForm.liters = String(r.liters || '')
     editForm.pricePerLiter = String(r.pricePerLiter || '')
     editForm.totalPrice = String(r.totalPrice || '')
-  } else {
+  } else if (item.type === 'service') {
     const s = item.data as ServiceRecord
     editForm.serviceType = s.serviceType || ''
     editForm.cost = String(s.cost || '')
@@ -589,7 +619,7 @@ async function saveRecord() {
       })
       showDialog('success', 'Refuel record updated successfully', '', 1500)
       await fetchRefuels()
-    } else {
+    } else if (editType.value === 'service') {
       await api.put(`/services/${editId.value}`, {
         vehicleId: editForm.vehicleId,
         serviceType: editForm.serviceType,
@@ -601,6 +631,15 @@ async function saveRecord() {
       })
       showDialog('success', 'Service record updated successfully', '', 1500)
       await fetchServices()
+    } else if (editType.value === 'odometer') {
+      await api.put(`/odometer/${editId.value}`, {
+        vehicleId: editForm.vehicleId,
+        mileage: Number(editForm.mileage),
+        note: editForm.note || null,
+        date: new Date(editForm.date).toISOString(),
+      })
+      showDialog('success', 'Odometer record updated successfully', '', 1500)
+      await fetchOdometers()
     }
     isEditing.value = false
   } catch (err) {
@@ -609,23 +648,22 @@ async function saveRecord() {
 }
 
 async function confirmDelete(item: HistoryItem) {
-  const typeLabel = item.type === 'refuel' ? 'refuel record' : 'service record'
+  const typeLabel = item.type === 'refuel' ? 'refuel record' : item.type === 'odometer' ? 'odometer record' : 'service record'
   const isConfirmed = window.confirm(`Are you sure you want to delete this ${typeLabel}?`)
   if (!isConfirmed) return
 
   try {
     if (item.type === 'refuel') {
       await api.delete(`/refuels/${item.id}`)
-    } else {
+      await fetchRefuels()
+    } else if (item.type === 'service') {
       await api.delete(`/services/${item.id}`)
+      await fetchServices()
+    } else if (item.type === 'odometer') {
+      await api.delete(`/odometer/${item.id}`)
+      await fetchOdometers()
     }
     showDialog('success', 'Record deleted successfully', '', 1500)
-    // Refresh lists
-    if (item.type === 'refuel') {
-      await fetchRefuels()
-    } else {
-      await fetchServices()
-    }
   } catch (err) {
     showDialog('danger', 'Error deleting record', getErrorMessage(err))
   }

@@ -103,6 +103,23 @@
       <IconLabelButton icon="build" label="Create service record" inline elevated />
     </form>
 
+    <form v-if="mode === 'odometer'" @submit.prevent="handleOdometer">
+      <TextInput v-model="formData.date" id="odometer_date" type="date" placeholder="Date" />
+
+      <label for="vehicle">Vehicle</label>
+      <select id="vehicle" v-model="formData.vehicleId">
+        <option disabled selected value="select-an-option">-- select an option --</option>
+        <option v-for="vehicle in vehicles" :key="vehicle.id" :value="vehicle.id">
+          {{ vehicle.name }}
+        </option>
+      </select>
+
+      <TextInput v-model="formData.mileage" id="odometer_mileage" type="number" placeholder="Mileage (Kilometers)" />
+      <TextInput v-model="formData.note" id="odometer_note" type="text" placeholder="Note (optional)" />
+
+      <IconLabelButton icon="speed" label="Create odometer record" inline elevated />
+    </form>
+
     <form v-if="mode === 'vehicle'" @submit.prevent="handleVehicle">
       <TextInput v-model="formData.vehicleName" id="vehicleName" type="text" placeholder="Name" />
       <TextInput v-model="vehiclePlateModel" id="vehiclePlate" type="text" placeholder="Registration plate" />
@@ -137,11 +154,11 @@ import { FUEL_TYPES, SERVICE_TYPES } from '@/lib/constants'
 const router = useRouter()
 const route = useRoute()
 
-type Mode = 'refuel' | 'service' | 'vehicle'
+type Mode = 'refuel' | 'service' | 'odometer' | 'vehicle'
 
 const getInitialMode = (): Mode => {
   const type = route.params.type
-  if (type === 'vehicle' || type === 'service' || type === 'refuel') {
+  if (type === 'vehicle' || type === 'service' || type === 'refuel' || type === 'odometer') {
     return type as Mode
   }
   return 'refuel'
@@ -152,7 +169,7 @@ const mode = ref<Mode>(getInitialMode())
 watch(
   () => route.params.type,
   (newType) => {
-    if (newType === 'vehicle' || newType === 'service' || newType === 'refuel') {
+    if (newType === 'vehicle' || newType === 'service' || newType === 'refuel' || newType === 'odometer') {
       mode.value = newType as Mode
     } else if (!newType) {
       mode.value = 'refuel'
@@ -169,6 +186,7 @@ watch(mode, (newMode) => {
 const options: SegmentOption<Mode>[] = [
   { value: 'refuel', label: 'Refuel', icon: 'local_gas_station', accent: 'success' },
   { value: 'service', label: 'Service', icon: 'build', accent: 'warning' },
+  { value: 'odometer', label: 'Odometer', icon: 'speed', accent: 'primary-light' },
   { value: 'vehicle', label: 'Vehicle', icon: 'directions_car', accent: 'primary-light' },
 ]
 
@@ -422,6 +440,25 @@ async function handleService() {
     }, 1500)
   } catch (err) {
     showDialog('danger', 'Error creating service record', getErrorMessage(err))
+  }
+}
+
+async function handleOdometer() {
+  const body = {
+    vehicleId: formData.vehicleId,
+    mileage: Number(formData.mileage),
+    note: formData.note || null,
+    date: new Date(formData.date).toISOString(),
+  }
+  try {
+    await api.post('/odometer', body)
+    showDialog('success', 'Odometer record created successfully', '', 1500)
+    resetForm()
+    setTimeout(() => {
+      router.push('/history')
+    }, 1500)
+  } catch (err) {
+    showDialog('danger', 'Error creating odometer record', getErrorMessage(err))
   }
 }
 
