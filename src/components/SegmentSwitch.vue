@@ -25,10 +25,14 @@ const activeIndex = computed(() =>
   ),
 )
 
-const indicatorStyle = computed(() => ({
-  transform: `translateX(${activeIndex.value * 100}%)`,
-  width: `calc(${100 / Math.max(1, props.options.length)}% - var(--space-xs))`,
-}))
+const indicatorStyle = computed(() => {
+  const count = Math.max(1, props.options.length)
+  const index = activeIndex.value
+  return {
+    left: `calc(${(index * 100) / count}% + var(--space-xs))`,
+    width: `calc(${100 / count}% - (var(--space-xs) * 2))`,
+  }
+})
 
 function select(value: string) {
   emit('update:modelValue', value)
@@ -52,12 +56,13 @@ function select(value: string) {
       type="button"
       role="tab"
       :aria-selected="opt.value === modelValue"
+      :title="opt.label"
       @click="select(opt.value)"
     >
       <span v-if="opt.icon" class="material-symbols-outlined" aria-hidden="true">
         {{ opt.icon }}
       </span>
-      {{ opt.label }}
+      <span class="label-text">{{ opt.label }}</span>
     </button>
   </div>
 </template>
@@ -68,6 +73,7 @@ function select(value: string) {
   display: grid;
   gap: var(--space-xs);
   padding: var(--space-xs);
+  width: 100%;
 
   border-radius: var(--radius-round);
   background: var(--bg-secondary);
@@ -77,16 +83,18 @@ function select(value: string) {
 
 .indicator {
   position: absolute;
-  inset: var(--space-xs);
+  top: var(--space-xs);
+  bottom: var(--space-xs);
   border-radius: var(--radius-round);
 
   background: var(--bg-elevated);
   border: 1px solid var(--border-default);
   box-shadow: var(--shadow-sm);
 
-  transform: translateX(0%);
-  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  will-change: transform;
+  transition:
+    left 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: left, width;
   z-index: 0;
 }
 
@@ -99,21 +107,29 @@ function select(value: string) {
   background: transparent;
   color: var(--text-secondary);
 
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-round);
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
 
   font-weight: 650;
+  font-size: 0.9rem;
   cursor: pointer;
-  min-height: 44px;
+  min-height: 42px;
+  white-space: nowrap;
 
   transition:
     color 180ms ease,
     transform 120ms ease;
+}
+
+.label-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .btn .material-symbols-outlined {
@@ -135,7 +151,7 @@ function select(value: string) {
 }
 
 .btn:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .btn:hover {
@@ -166,6 +182,56 @@ function select(value: string) {
 
 .btn.active.accent-primary-light {
   color: var(--color-primary-light);
+}
+
+/* Responsive adjustments for Mobile screens */
+@media (max-width: 640px) {
+  .segmented {
+    padding: 3px;
+    border-radius: 12px;
+  }
+
+  .indicator {
+    top: 3px;
+    bottom: 3px;
+    border-radius: 9px;
+  }
+
+  .btn {
+    padding: 6px 2px;
+    min-height: 40px;
+    font-size: 0.75rem;
+    gap: 2px;
+    flex-direction: column;
+    border-radius: 9px;
+  }
+
+  .btn .material-symbols-outlined {
+    font-size: 18px;
+  }
+
+  .label-text {
+    font-size: 0.68rem;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+}
+
+@media (max-width: 380px) {
+  .btn {
+    padding: 4px 1px;
+    min-height: 38px;
+  }
+
+  .btn .material-symbols-outlined {
+    font-size: 16px;
+  }
+
+  .label-text {
+    font-size: 0.62rem;
+    letter-spacing: -0.02em;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
