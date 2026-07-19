@@ -14,6 +14,20 @@ export interface ReleaseLog {
 
 export const CHANGELOG_DATA: ReleaseLog[] = [
   {
+    version: '2.1.0',
+    date: '2026-07-19',
+    title: 'Standalone Odometer Logging & UX Enhancements',
+    highlight: 'Minor release adding standalone mileage tracking, responsive picker controls, and version indicators.',
+    changes: [
+      { type: 'feat', text: 'Standalone Odometer Reading form & history entry (log car mileage without refuel or service)' },
+      { type: 'feat', text: 'Integrated Odometer entries into Service Maintenance Tracker calculations' },
+      { type: 'feat', text: 'App and Server Version indicator section with live connection indicator in Settings' },
+      { type: 'feat', text: 'Interactive Changelog release notes modal' },
+      { type: 'style', text: 'Optimized SegmentSwitch picker for mobile screens with column layout' },
+      { type: 'fix', text: 'Resolved date input width collapse bug on mobile WebKit browsers' },
+    ],
+  },
+  {
     version: '2.0.0',
     date: '2026-07-19',
     title: 'Vue 3 Web App Rewrite & Service Maintenance Tracker',

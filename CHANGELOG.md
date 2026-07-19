@@ -2,6 +2,17 @@
 
 All notable changes to the `fuelstats-app` frontend application will be documented in this file.
 
+## [2.1.0] - 2026-07-19
+
+### Features & Improvements
+* `feat`: Standalone Odometer Reading entry form and history management (log mileage state without refuel/service).
+* `feat`: Integrated standalone Odometer logs into Service Maintenance Tracker status calculations.
+* `feat`: App & Server Version display with live online indicator and interactive release notes modal in Settings.
+* `style`: Optimized SegmentSwitch picker for mobile screens with compact native column tab layout.
+* `fix`: Resolved date input width collapse bug on mobile WebKit browsers.
+
+---
+
 ## [2.0.0] - 2026-07-19
 
 ### Major Highlights
