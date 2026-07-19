@@ -33,11 +33,7 @@ fi
 echo "📦 Running type-checks and production build..."
 npm run build
 
-# 3. Build & Embed Client for Server Production
-echo "🚀 Embedding production client to server..."
-npm run build:embed
-
-# 4. Create Git Tag if not tagged
+# 3. Create Git Tag if not tagged
 TAG_NAME="v$VERSION"
 if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
   echo "⚠️ Tag $TAG_NAME already exists."
