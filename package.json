@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "build:embed": "node scripts/embed-frontend.cjs",
+    "release": "bash scripts/release.sh",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix --cache",
     "format": "prettier --write --experimental-cli src/"
