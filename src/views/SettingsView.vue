@@ -91,6 +91,49 @@
         </div>
       </div>
     </section>
+
+    <!-- App & Server Version Section -->
+    <section class="settings-section">
+      <div class="section-title">
+        <span class="material-symbols-outlined">info</span>
+        <h2>App & Server Information</h2>
+      </div>
+
+      <div class="version-card">
+        <div class="version-grid">
+          <div class="version-item">
+            <span class="version-label">Web Client App</span>
+            <div class="version-badge-group">
+              <span class="version-number">v{{ appVersion }}</span>
+              <span class="tag-badge">Vue 3 PWA</span>
+            </div>
+          </div>
+
+          <div class="version-item">
+            <span class="version-label">Backend API Server</span>
+            <div class="version-badge-group">
+              <span class="version-number" v-if="serverVersion">v{{ serverVersion }}</span>
+              <span class="version-number text-muted" v-else>Fetching...</span>
+              <span class="status-indicator" :class="{ online: !!serverVersion }">
+                <span class="dot"></span>
+                <span>{{ serverVersion ? 'Online' : 'Connecting' }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="version-actions">
+          <IconLabelButton
+            icon="history"
+            label="View Release Notes / Changelog"
+            class="btn-changelog"
+            @click="openChangelogModal"
+            inline
+            elevated
+          />
+        </div>
+      </div>
+    </section>
   </div>
 
   <!-- Service Import Modal (Wizard) -->
@@ -138,6 +181,48 @@
       </div>
     </div>
   </Transition>
+
+  <!-- Changelog Modal -->
+  <Transition name="fade">
+    <div class="modal-backdrop" v-if="isChangelogModalOpen" @click.self="closeChangelogModal">
+      <div class="edit-modal changelog-modal">
+        <div class="modal-header-row">
+          <h3>Release Notes & Version History</h3>
+          <button class="btn-close-icon" @click="closeChangelogModal">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="changelog-list">
+          <div v-for="release in CHANGELOG_DATA" :key="release.version" class="release-block">
+            <div class="release-header">
+              <div class="release-title-group">
+                <span class="release-ver">v{{ release.version }}</span>
+                <span class="release-date">{{ release.date }}</span>
+              </div>
+              <h4 class="release-name">{{ release.title }}</h4>
+            </div>
+
+            <p class="release-highlight" v-if="release.highlight">
+              {{ release.highlight }}
+            </p>
+
+            <ul class="changes-list">
+              <li v-for="(change, idx) in release.changes" :key="idx" class="change-item">
+                <span class="type-tag" :class="change.type">{{ change.type }}</span>
+                <span class="change-text">{{ change.text }}</span>
+                <code v-if="change.commit" class="commit-badge">{{ change.commit }}</code>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" @click="closeChangelogModal">Close</button>
+        </div>
+      </div>
+    </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
@@ -146,6 +231,7 @@ import axios from 'axios'
 import api from '@/lib/api'
 import { useAuthStore } from '@/stores/auth'
 import { useVehicles } from '@/composables/useVehicles'
+import { CHANGELOG_DATA } from '@/data/changelog'
 import IconLabelButton from '@/components/IconLabelButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 
@@ -155,7 +241,32 @@ const auth = useAuthStore()
 // Vehicles Composable (for fallback vehicle IDs on import)
 const { vehicles, fetchVehicles } = useVehicles()
 
-onMounted(fetchVehicles)
+// Versions & Server Info state
+const appVersion = ref(__APP_VERSION__)
+const serverVersion = ref<string | null>(null)
+const isChangelogModalOpen = ref(false)
+
+async function fetchServerVersion() {
+  try {
+    const res = await api.get('/version')
+    serverVersion.value = res.data.version || '1.0.0'
+  } catch (err) {
+    console.warn('Could not fetch server version:', err)
+  }
+}
+
+function openChangelogModal() {
+  isChangelogModalOpen.value = true
+}
+
+function closeChangelogModal() {
+  isChangelogModalOpen.value = false
+}
+
+onMounted(() => {
+  fetchVehicles()
+  fetchServerVersion()
+})
 
 const defaultVehicle = computed(() => {
   return vehicles.value.find((v) => v.isDefault) || vehicles.value[0] || null
@@ -714,6 +825,236 @@ async function handleImportSubmit() {
       background-color: var(--color-primary-hover);
     }
   }
+}
+
+/* Version Info Section */
+.version-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+
+  .version-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+
+    @media (min-width: 640px) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .version-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    text-align: left;
+  }
+
+  .version-label {
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    font-weight: 700;
+  }
+
+  .version-badge-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .version-number {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .tag-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background-color: rgba(162, 155, 178, 0.15);
+    color: var(--color-primary-light);
+  }
+
+  .status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--border-default);
+    }
+
+    &.online {
+      color: #3fb950;
+
+      .dot {
+        background-color: #3fb950;
+        box-shadow: 0 0 6px rgba(63, 185, 80, 0.4);
+      }
+    }
+  }
+
+  .version-actions {
+    display: flex;
+    justify-content: flex-start;
+    padding-top: var(--space-xs);
+    border-top: 1px solid var(--border-muted);
+  }
+}
+
+/* Changelog Modal Styles */
+.changelog-modal {
+  max-width: 38rem !important;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-xs);
+
+  h3 {
+    margin: 0;
+  }
+
+  .btn-close-icon {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+
+    &:hover {
+      color: var(--text-primary);
+    }
+  }
+}
+
+.changelog-list {
+  overflow-y: auto;
+  padding-right: var(--space-xs);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  margin: var(--space-sm) 0;
+  text-align: left;
+}
+
+.release-block {
+  border-bottom: 1px solid var(--border-muted);
+  padding-bottom: var(--space-md);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.release-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: var(--space-xs);
+}
+
+.release-title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.release-ver {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary-light);
+}
+
+.release-date {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.release-name {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.release-highlight {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: var(--space-xs) 0;
+  font-style: italic;
+}
+
+.changes-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-xs) 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.change-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.825rem;
+  color: var(--text-primary);
+}
+
+.type-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+
+  &.feat {
+    background-color: rgba(63, 185, 80, 0.15);
+    color: #58a6ff;
+  }
+  &.fix {
+    background-color: rgba(248, 81, 73, 0.15);
+    color: #ff7b72;
+  }
+  &.style {
+    background-color: rgba(210, 153, 34, 0.15);
+    color: #d29922;
+  }
+}
+
+.change-text {
+  flex: 1;
+}
+
+.commit-badge {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background-color: var(--bg-primary);
+  padding: 1px 4px;
+  border-radius: 4px;
+  border: 1px solid var(--border-muted);
 }
 
 /* Transitions */
