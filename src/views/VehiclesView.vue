@@ -135,21 +135,24 @@
             </button>
 
             <div v-else class="custom-task-form">
-              <h4>Add Custom Service Item</h4>
+              <div class="custom-form-title">
+                <span class="material-symbols-outlined">add_task</span>
+                <span>Add Custom Service Item</span>
+              </div>
               <input
                 type="text"
                 v-model="customTaskName"
-                placeholder="e.g. Výměna svíček / Kontrola klimy"
+                placeholder="Task name (e.g. Výměna svíček / Kontrola klimy)"
                 class="custom-name-input"
                 @keyup.enter="addCustomServiceTask"
               />
               <div class="custom-inputs-row">
                 <div class="input-wrp">
-                  <input type="number" v-model="customIntervalKm" placeholder="Threshold (km)" min="0" />
+                  <input type="number" v-model="customIntervalKm" placeholder="Threshold" min="0" />
                   <span class="unit">km</span>
                 </div>
                 <div class="input-wrp">
-                  <input type="number" v-model="customIntervalMonths" placeholder="Threshold (mths)" min="0" />
+                  <input type="number" v-model="customIntervalMonths" placeholder="Threshold" min="0" />
                   <span class="unit">mths</span>
                 </div>
               </div>
@@ -725,6 +728,60 @@ async function deleteVehicle(vehicle: Vehicle) {
   margin-bottom: var(--space-md);
 }
 
+/* Shared Pill Input Wrapper */
+.input-wrp {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 0.3rem 0.6rem;
+  box-sizing: border-box;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+
+  &:focus-within {
+    border-color: var(--color-primary-light);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-light) 25%, transparent);
+  }
+
+  input {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    color: var(--text-primary) !important;
+    width: 100% !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    text-align: right !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    box-shadow: none !important;
+
+    &::placeholder {
+      color: var(--text-muted);
+      opacity: 0.5;
+    }
+
+    /* Remove spinner arrows */
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    -moz-appearance: textfield;
+  }
+
+  .unit {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-left: 0.35rem;
+    font-weight: 600;
+    white-space: nowrap;
+    user-select: none;
+  }
+}
+
 .plan-row {
   display: flex;
   flex-direction: row;
@@ -748,45 +805,11 @@ async function deleteVehicle(vehicle: Vehicle) {
   .inputs-grp {
     display: flex;
     flex-direction: row;
+    align-items: center;
     gap: var(--space-sm);
     
     .input-wrp {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      background-color: var(--bg-primary);
-      border: 1px solid var(--border-default);
-      border-radius: var(--radius-md);
-      padding: 0.25rem 0.5rem;
       width: 7rem;
-      
-      input {
-        background: transparent;
-        border: none;
-        outline: none;
-        color: var(--text-primary);
-        width: 100%;
-        font-size: 0.875rem;
-        font-weight: 550;
-        text-align: right;
-        padding: 0;
-        min-height: auto;
-        
-        /* Remove spinner arrows */
-        &::-webkit-outer-spin-button,
-        &::-webkit-inner-spin-button {
-          -webkit-appearance: none;
-          margin: 0;
-        }
-        -moz-appearance: textfield;
-      }
-      
-      .unit {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-        margin-left: 0.25rem;
-        font-weight: 600;
-      }
     }
 
     .btn-clear-row {
@@ -845,20 +868,27 @@ async function deleteVehicle(vehicle: Vehicle) {
 }
 
 .custom-task-form {
-  background-color: var(--bg-primary);
+  background: color-mix(in srgb, var(--bg-secondary) 80%, black 20%);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
   text-align: left;
+  box-shadow: var(--shadow-sm);
 
-  h4 {
-    margin: 0;
+  .custom-form-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
     font-size: 0.875rem;
-    color: var(--text-primary);
     font-weight: 650;
+    color: var(--color-primary-light);
+
+    .material-symbols-outlined {
+      font-size: 18px;
+    }
   }
 
   .custom-name-input {
@@ -866,14 +896,21 @@ async function deleteVehicle(vehicle: Vehicle) {
     box-sizing: border-box;
     padding: var(--space-xs) var(--space-sm);
     border-radius: var(--radius-md);
-    background-color: var(--bg-secondary);
+    background-color: var(--bg-primary);
     color: var(--text-primary);
     border: 1px solid var(--border-default);
     outline: none;
     font-size: 0.875rem;
+    font-family: inherit;
+
+    &::placeholder {
+      color: var(--text-muted);
+      opacity: 0.6;
+    }
 
     &:focus {
       border-color: var(--color-primary-light);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-light) 25%, transparent);
     }
   }
 
@@ -893,15 +930,16 @@ async function deleteVehicle(vehicle: Vehicle) {
     justify-content: flex-end;
     align-items: center;
     gap: var(--space-sm);
-    margin-top: 2px;
+    margin-top: var(--space-xs);
 
     .btn-cancel-custom {
       background: transparent;
       border: none;
       color: var(--text-secondary);
-      font-size: 0.8rem;
+      font-size: 0.825rem;
+      font-weight: 550;
       cursor: pointer;
-      padding: 0.25rem 0.5rem;
+      padding: 0.3rem 0.6rem;
 
       &:hover {
         color: var(--text-primary);
@@ -916,8 +954,8 @@ async function deleteVehicle(vehicle: Vehicle) {
       color: #000;
       border: none;
       border-radius: var(--radius-md);
-      padding: 0.3rem 0.65rem;
-      font-size: 0.8rem;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.825rem;
       font-weight: 650;
       cursor: pointer;
 
