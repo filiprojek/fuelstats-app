@@ -14,6 +14,17 @@ export interface ReleaseLog {
 
 export const CHANGELOG_DATA: ReleaseLog[] = [
   {
+    version: '2.1.1',
+    date: '2026-07-20',
+    title: 'Custom Service Tasks & Maintenance Plans',
+    highlight: 'Patch release adding custom service task creation and dark glassmorphic interval plan controls.',
+    changes: [
+      { type: 'feat', text: 'Custom Service Task Creator (add user-defined maintenance tasks with custom km/month intervals)' },
+      { type: 'feat', text: 'Inline interval reset/clear controls in Service Plans modal' },
+      { type: 'style', text: 'Polished custom task form layout and pill input styling in Service Plans modal' },
+    ],
+  },
+  {
     version: '2.1.0',
     date: '2026-07-19',
     title: 'Standalone Odometer Logging & UX Enhancements',

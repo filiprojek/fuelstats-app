@@ -2,6 +2,15 @@
 
 All notable changes to the `fuelstats-app` frontend application will be documented in this file.
 
+## [2.1.1] - 2026-07-20
+
+### Features & Improvements
+* `feat`: Custom Service Task Creator (add user-defined maintenance tasks with custom km/month intervals).
+* `feat`: Inline interval reset/clear controls in Service Plans modal.
+* `style`: Polished custom task form layout and dark pill input styling in Service Plans modal.
+
+---
+
 ## [2.1.0] - 2026-07-19
 
 ### Features & Improvements
