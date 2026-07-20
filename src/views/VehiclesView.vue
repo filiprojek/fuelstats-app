@@ -89,13 +89,13 @@
         
         <form v-else @submit.prevent="saveServicePlans">
           <div class="plans-list">
-            <div v-for="task in serviceTasksList" :key="task._id" class="plan-row">
+            <div v-for="task in serviceTasksList" :key="task._id || task.id" class="plan-row">
               <span class="task-name">{{ task.name }}</span>
-              <div class="inputs-grp" v-if="vehicleIntervals[task._id]">
+              <div class="inputs-grp" v-if="vehicleIntervals[task._id || task.id]">
                 <div class="input-wrp">
                   <input
                     type="number"
-                    v-model="vehicleIntervals[task._id].intervalKm"
+                    v-model="vehicleIntervals[task._id || task.id].intervalKm"
                     placeholder="None"
                     min="0"
                   />
@@ -104,12 +104,60 @@
                 <div class="input-wrp">
                   <input
                     type="number"
-                    v-model="vehicleIntervals[task._id].intervalMonths"
+                    v-model="vehicleIntervals[task._id || task.id].intervalMonths"
                     placeholder="None"
                     min="0"
                   />
                   <span class="unit">mths</span>
                 </div>
+                <button
+                  type="button"
+                  class="btn-clear-row"
+                  title="Clear interval"
+                  @click="clearPlan(task._id || task.id)"
+                >
+                  <span class="material-symbols-outlined">clear</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Custom Service Item Section -->
+          <div class="add-custom-task-section">
+            <button
+              v-if="!isAddingCustomTask"
+              type="button"
+              class="btn-add-custom-toggle"
+              @click="isAddingCustomTask = true"
+            >
+              <span class="material-symbols-outlined">add_circle</span>
+              Add Custom Service Item
+            </button>
+
+            <div v-else class="custom-task-form">
+              <h4>Add Custom Service Item</h4>
+              <input
+                type="text"
+                v-model="customTaskName"
+                placeholder="e.g. Výměna svíček / Kontrola klimy"
+                class="custom-name-input"
+                @keyup.enter="addCustomServiceTask"
+              />
+              <div class="custom-inputs-row">
+                <div class="input-wrp">
+                  <input type="number" v-model="customIntervalKm" placeholder="Threshold (km)" min="0" />
+                  <span class="unit">km</span>
+                </div>
+                <div class="input-wrp">
+                  <input type="number" v-model="customIntervalMonths" placeholder="Threshold (mths)" min="0" />
+                  <span class="unit">mths</span>
+                </div>
+              </div>
+              <div class="custom-actions-row">
+                <button type="button" class="btn-cancel-custom" @click="isAddingCustomTask = false">Cancel</button>
+                <button type="button" class="btn-save-custom" @click="addCustomServiceTask" :disabled="!customTaskName.trim()">
+                  <span class="material-symbols-outlined">add</span> Add Item
+                </button>
               </div>
             </div>
           </div>
@@ -245,6 +293,48 @@ const selectedVehicleForPlans = ref<Vehicle | null>(null)
 const serviceTasksList = ref<any[]>([])
 const vehicleIntervals = ref<any>({})
 
+const isAddingCustomTask = ref(false)
+const customTaskName = ref('')
+const customIntervalKm = ref('')
+const customIntervalMonths = ref('')
+
+async function addCustomServiceTask() {
+  const name = customTaskName.value.trim()
+  if (!name) return
+
+  try {
+    const res = await api.post('/vehicles/service-tasks', { name })
+    const task = res.data
+    const taskId = task._id || task.id
+
+    if (!serviceTasksList.value.some((t) => (t._id || t.id) === taskId)) {
+      serviceTasksList.value.push(task)
+    }
+
+    if (!vehicleIntervals.value[taskId]) {
+      vehicleIntervals.value[taskId] = { intervalKm: '', intervalMonths: '' }
+    }
+    vehicleIntervals.value[taskId].intervalKm = customIntervalKm.value ? String(customIntervalKm.value) : ''
+    vehicleIntervals.value[taskId].intervalMonths = customIntervalMonths.value ? String(customIntervalMonths.value) : ''
+
+    customTaskName.value = ''
+    customIntervalKm.value = ''
+    customIntervalMonths.value = ''
+    isAddingCustomTask.value = false
+
+    showDialog('success', 'Custom service item added', name, 1500)
+  } catch (err) {
+    showDialog('danger', 'Error adding custom service item', getErrorMessage(err))
+  }
+}
+
+function clearPlan(taskId: string) {
+  if (vehicleIntervals.value[taskId]) {
+    vehicleIntervals.value[taskId].intervalKm = ''
+    vehicleIntervals.value[taskId].intervalMonths = ''
+  }
+}
+
 async function openServicePlans(vehicle: Vehicle) {
   selectedVehicleForPlans.value = vehicle
   isServicePlansOpen.value = true
@@ -255,13 +345,14 @@ async function openServicePlans(vehicle: Vehicle) {
       api.get(`/vehicles/${vehicle.id}/service-intervals`),
     ])
     serviceTasksList.value = tasksRes.data
-    
+
     // Initialize intervals state
     const intervalsMap: Record<string, { intervalKm: string; intervalMonths: string }> = {}
     for (const task of tasksRes.data) {
-      intervalsMap[task._id] = { intervalKm: '', intervalMonths: '' }
+      const taskId = task._id || task.id
+      intervalsMap[taskId] = { intervalKm: '', intervalMonths: '' }
     }
-    
+
     // Populate with existing interval settings
     for (const val of intervalsRes.data) {
       const currentMap = intervalsMap[val.serviceTaskId]
@@ -270,7 +361,7 @@ async function openServicePlans(vehicle: Vehicle) {
         currentMap.intervalMonths = val.intervalMonths !== null && val.intervalMonths !== undefined ? String(val.intervalMonths) : ''
       }
     }
-    
+
     vehicleIntervals.value = intervalsMap
   } catch (err) {
     showDialog('danger', 'Error loading service plans', getErrorMessage(err))
@@ -285,6 +376,10 @@ function closeServicePlans() {
   selectedVehicleForPlans.value = null
   serviceTasksList.value = []
   vehicleIntervals.value = {}
+  isAddingCustomTask.value = false
+  customTaskName.value = ''
+  customIntervalKm.value = ''
+  customIntervalMonths.value = ''
 }
 
 async function saveServicePlans() {
@@ -691,6 +786,148 @@ async function deleteVehicle(vehicle: Vehicle) {
         color: var(--text-secondary);
         margin-left: 0.25rem;
         font-weight: 600;
+      }
+    }
+
+    .btn-clear-row {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 0 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      transition: color 150ms ease;
+
+      &:hover {
+        color: var(--color-danger);
+      }
+
+      .material-symbols-outlined {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+.add-custom-task-section {
+  margin-top: var(--space-sm);
+  margin-bottom: var(--space-md);
+  border-top: 1px dashed var(--border-default);
+  padding-top: var(--space-sm);
+}
+
+.btn-add-custom-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: transparent;
+  border: 1px dashed var(--color-primary-light);
+  color: var(--color-primary-light);
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+  transition: all 150ms ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--color-primary-light) 10%, transparent);
+  }
+
+  .material-symbols-outlined {
+    font-size: 18px;
+  }
+}
+
+.custom-task-form {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  text-align: left;
+
+  h4 {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    font-weight: 650;
+  }
+
+  .custom-name-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    outline: none;
+    font-size: 0.875rem;
+
+    &:focus {
+      border-color: var(--color-primary-light);
+    }
+  }
+
+  .custom-inputs-row {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-sm);
+    
+    .input-wrp {
+      flex: 1;
+    }
+  }
+
+  .custom-actions-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: 2px;
+
+    .btn-cancel-custom {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+
+      &:hover {
+        color: var(--text-primary);
+      }
+    }
+
+    .btn-save-custom {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--color-primary-light);
+      color: #000;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 0.3rem 0.65rem;
+      font-size: 0.8rem;
+      font-weight: 650;
+      cursor: pointer;
+
+      .material-symbols-outlined {
+        font-size: 16px;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
       }
     }
   }
