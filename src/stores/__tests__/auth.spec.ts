@@ -3,7 +3,9 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 
 describe('auth store', () => {
-  beforeEach(() => setActivePinia(createPinia()))
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
 
   it('starts empty and uninitialized', () => {
     const auth = useAuthStore()

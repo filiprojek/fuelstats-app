@@ -1,10 +1,18 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-type User = {
-  id: number
+export type LinkedIdentity = {
+  provider: string
+  email?: string
+  linkedAt?: string
+}
+
+export type User = {
+  id: number | string
   email: string
   username: string
+  hasPassword?: boolean
+  identities?: LinkedIdentity[]
 }
 
 export const useAuthStore = defineStore('auth', () => {

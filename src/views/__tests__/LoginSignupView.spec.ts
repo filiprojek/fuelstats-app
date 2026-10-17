@@ -8,6 +8,11 @@ import { makeRouter, axiosError } from '@/test/utils'
 const apiMock = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }))
 vi.mock('@/lib/api', () => ({ default: apiMock }))
 
+const providers = [
+  { id: 'authelia', name: 'Authelia' },
+  { id: 'google', name: 'Google' },
+]
+
 async function mountAt(path: string) {
   const pinia = createPinia()
   setActivePinia(pinia)
@@ -111,4 +116,33 @@ describe('LoginSignupView', () => {
       expect(wrapper.text()).toContain('Email already in use')
     })
   })
+
+  describe('single sign-on', () => {
+    beforeEach(() => {
+      apiMock.get.mockImplementation(async (url: string) => {
+        if (url === '/auth/providers') return { data: providers }
+        return { data: { id: 1, email: 'a@b.com', username: 'a' } }
+      })
+    })
+
+    it.each(['/login', '/signup'])('shows a button per provider on %s', async (path) => {
+      const { wrapper } = await mountAt(path)
+      const links = wrapper.findAll('a.sso-button')
+      expect(links.map((l) => l.find('.sso-label').text())).toEqual(['Continue with Authelia', 'Continue with Google'])
+      expect(links[0]!.attributes('href')).toBe('http://api.test/api/v1/auth/oidc/authelia/start')
+    })
+
+    it('hides the SSO block when no providers are configured', async () => {
+      apiMock.get.mockImplementation(async () => ({ data: [] }))
+      const { wrapper } = await mountAt('/login')
+      expect(wrapper.find('.sso').exists()).toBe(false)
+    })
+
+    it('shows an SSO error passed back in the url hash', async () => {
+      const { wrapper } = await mountAt('/login#error=account_exists_unverified')
+      expect(wrapper.text()).toContain('Single sign-on failed')
+      expect(wrapper.text()).toMatch(/password/i)
+    })
+  })
 })
+

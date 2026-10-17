@@ -51,6 +51,12 @@ const router = createRouter({
       meta: { title: 'Sign Up', hideNav: true, hideHeader: true },
       component: () => import('../views/LoginSignupView.vue'),
     },
+    {
+      path: '/auth/callback',
+      name: 'auth-callback',
+      meta: { title: 'Signing in', hideNav: true, hideHeader: true },
+      component: () => import('../views/AuthCallbackView.vue'),
+    },
     // will match everything and put it under `route.params.pathMatch`
     {
       path: '/:pathMatch(.*)*',

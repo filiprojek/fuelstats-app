@@ -19,10 +19,10 @@ export default defineConfig({
     environment: 'jsdom',
     root: fileURLToPath(new URL('./', import.meta.url)),
     include: ['src/**/__tests__/*.spec.ts'],
+    restoreMocks: true,
     env: {
       VITE_API: 'http://api.test/api/v1',
     },
-    restoreMocks: true,
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,vue}'],

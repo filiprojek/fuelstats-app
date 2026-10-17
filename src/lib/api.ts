@@ -29,12 +29,10 @@ api.interceptors.response.use(
       auth.clear()
       localStorage.removeItem('token')
 
-      // avoid redirect loop
+      // only leave protected pages; public pages (login, signup, SSO callback) and the
+      // initial session check before the first navigation are handled by the router guard
       const { default: router } = await import('@/router')
-      const name = router.currentRoute.value.name
-      console.log(name)
-
-      if (name !== 'login' && name !== 'signup') {
+      if (router.currentRoute.value.meta?.requiresAuth) {
         router.push('/login')
       }
     }

@@ -3,7 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import type { InternalAxiosRequestConfig, AxiosResponse } from 'axios'
 
 const routerMock = vi.hoisted(() => ({
-  currentRoute: { value: { name: 'home' as string } },
+  currentRoute: { value: { name: 'home' as string | undefined, meta: { requiresAuth: true } as Record<string, unknown> } },
   push: vi.fn(),
 }))
 vi.mock('@/router', () => ({ default: routerMock }))
@@ -40,6 +40,7 @@ describe('api client', () => {
     localStorage.clear()
     routerMock.push.mockReset()
     routerMock.currentRoute.value.name = 'home'
+    routerMock.currentRoute.value.meta = { requiresAuth: true }
     vi.spyOn(console, 'log').mockImplementation(() => {})
   })
 
@@ -82,8 +83,17 @@ describe('api client', () => {
     expect(routerMock.push).toHaveBeenCalledWith('/login')
   })
 
-  it.each(['login', 'signup'])('does not redirect when already on %s', async (name) => {
+  it.each(['login', 'signup', 'auth-callback'])('does not redirect from the public %s route', async (name) => {
     routerMock.currentRoute.value.name = name
+    routerMock.currentRoute.value.meta = {}
+    useAdapter((config) => fail(config, 401))
+    await expect(api.get('/user/me')).rejects.toBeTruthy()
+    expect(routerMock.push).not.toHaveBeenCalled()
+  })
+
+  it('does not redirect before the first navigation finished (guard handles it)', async () => {
+    routerMock.currentRoute.value.name = undefined
+    routerMock.currentRoute.value.meta = {}
     useAdapter((config) => fail(config, 401))
     await expect(api.get('/user/me')).rejects.toBeTruthy()
     expect(routerMock.push).not.toHaveBeenCalled()

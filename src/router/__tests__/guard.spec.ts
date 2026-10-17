@@ -48,4 +48,13 @@ describe('router auth guard', () => {
     await router.push('/signup')
     expect(router.currentRoute.value.path).toBe('/signup')
   })
+
+  it('exposes the public SSO callback route without navigation chrome', async () => {
+    apiMock.get.mockRejectedValue(new Error('401'))
+    const router = await freshRouter()
+    const route = router.resolve('/auth/callback')
+    expect(route.name).toBe('auth-callback')
+    expect(route.meta).toMatchObject({ hideNav: true, hideHeader: true })
+    expect(route.meta.requiresAuth).toBeFalsy()
+  })
 })

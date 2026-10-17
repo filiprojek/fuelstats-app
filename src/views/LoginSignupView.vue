@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import axios from 'axios'
 import IconLabelButton from '@/components/IconLabelButton.vue'
 import TextInput from '@/components/TextInput.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/lib/api'
+import { fetchProviders, oidcErrorMessage, parseAuthHash, providerStartUrl, type OidcProvider } from '@/lib/oidc'
 
 const route = useRoute()
 const router = useRouter()
@@ -16,6 +17,8 @@ const loginData = reactive({
   username: '',
   password: '',
 })
+
+const providers = ref<OidcProvider[]>([])
 
 type DialogStyle = 'success' | 'danger' | 'warning' | 'info'
 
@@ -76,6 +79,15 @@ async function login() {
   }
 }
 
+onMounted(async () => {
+  const { error } = parseAuthHash(route.hash)
+  if (error) {
+    showDialog('danger', 'Single sign-on failed', oidcErrorMessage(error), 8000)
+    router.replace({ path: route.path, hash: '' })
+  }
+  providers.value = await fetchProviders()
+})
+
 async function signup() {
   try {
     await api.post('/auth/signup', {
@@ -107,6 +119,13 @@ async function signup() {
     <TextInput v-model="loginData.password" id="password" type="password" placeholder="Password" />
 
     <IconLabelButton type="submit" id="btn-login" label="Log In" icon="login" inline elevated />
+    <div v-if="providers.length" class="sso">
+      <span class="sso-divider">or</span>
+      <a v-for="p in providers" :key="p.id" class="sso-button" :href="providerStartUrl(p.id)">
+        <span class="material-symbols-outlined">key</span>
+        <span class="sso-label">Continue with {{ p.name }}</span>
+      </a>
+    </div>
     <RouterLink to="/signup">Don't have an account? Sign up</RouterLink>
   </form>
 
@@ -119,6 +138,13 @@ async function signup() {
     <TextInput v-model="loginData.password" id="password" type="password" placeholder="Password" />
 
     <IconLabelButton type="submit" id="btn-signup" label="Sign Up" icon="person_add" inline elevated />
+    <div v-if="providers.length" class="sso">
+      <span class="sso-divider">or</span>
+      <a v-for="p in providers" :key="p.id" class="sso-button" :href="providerStartUrl(p.id)">
+        <span class="material-symbols-outlined">key</span>
+        <span class="sso-label">Continue with {{ p.name }}</span>
+      </a>
+    </div>
     <RouterLink to="/login">Already have an account? Log in</RouterLink>
   </form>
 </template>
@@ -159,6 +185,55 @@ form {
 
 #btn-signup {
   background-color: var(--color-primary);
+}
+
+.sso {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.sso-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--border-muted);
+  }
+}
+
+.sso-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+
+  &:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--color-primary-light);
+  }
+
+  .material-symbols-outlined {
+    font-size: 1.25rem;
+  }
 }
 </style>
 
