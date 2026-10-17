@@ -21,6 +21,16 @@
       </section>
     </div>
 
+    <!-- Sign-in Methods Section -->
+    <section class="settings-section">
+      <div class="section-title">
+        <span class="material-symbols-outlined">key</span>
+        <h2>Sign-in methods</h2>
+      </div>
+
+      <SignInMethods @notify="showDialog" />
+    </section>
+
     <!-- Data Management Section -->
     <section class="settings-section">
       <div class="section-title">
@@ -234,6 +244,7 @@ import { useVehicles } from '@/composables/useVehicles'
 import { CHANGELOG_DATA } from '@/data/changelog'
 import IconLabelButton from '@/components/IconLabelButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
+import SignInMethods from '@/components/SignInMethods.vue'
 
 // Auth Store
 const auth = useAuthStore()
