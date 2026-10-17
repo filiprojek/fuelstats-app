@@ -70,7 +70,8 @@ describe('TextInput', () => {
   it('emits update:modelValue on input', async () => {
     const w = mount(TextInput, { props: { modelValue: '' } })
     await w.find('input').setValue('hello')
-    expect(w.emitted('update:modelValue')?.at(-1)).toEqual(['hello'])
+    const events = w.emitted('update:modelValue') ?? []
+    expect(events[events.length - 1]).toEqual(['hello'])
   })
 })
 

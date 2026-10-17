@@ -447,6 +447,7 @@ async function handleImportSubmit() {
         headers: { 'Content-Type': 'text/csv' },
       })
       showDialog('success', 'Service records imported successfully', '')
+      isImporting.value = false
       closeImportModal()
     } catch (err) {
       showDialog('danger', 'Import failed', getErrorMessage(err))
