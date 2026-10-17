@@ -26,6 +26,13 @@ services:
       APP_PORT: 6060
       APP_HOSTNAME: '0.0.0.0'
       CORS_WHITELIST: '*' # Or restrict to specific domains if needed
+      # Public URL of the frontend - required for single sign-on redirects
+      # APP_HOST: 'https://fuel.example.com'
+      # Single sign-on via Authelia (or any OpenID Connect provider), see README
+      # OIDC_PROVIDERS: 'authelia'
+      # OIDC_AUTHELIA_ISSUER: 'https://auth.example.com'
+      # OIDC_AUTHELIA_CLIENT_ID: 'fuelstats'
+      # OIDC_AUTHELIA_CLIENT_SECRET: 'change_me'
 
   frontend:
     build:
