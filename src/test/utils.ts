@@ -24,3 +24,8 @@ export function axiosError(status: number, data: unknown = {}) {
     response: { status, data },
   })
 }
+
+/** Named placeholder component accepting the given props (use inside async vi.mock factories) */
+export function stubComponent(name: string, props: string[] = []) {
+  return defineComponent({ name, props, render: () => h('div', { class: `stub-${name}` }) })
+}
