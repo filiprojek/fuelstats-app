@@ -22,6 +22,7 @@ export default defineConfig({
     restoreMocks: true,
     env: {
       VITE_API: 'http://api.test/api/v1',
+      VITE_API_BASE: '',
     },
     coverage: {
       provider: 'v8',
