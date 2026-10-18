@@ -4,7 +4,7 @@ This repository contains the frontend client for Fuelstats, a self-hosted dashbo
 
 ## Features
 
-- **Dashboard Statistics**: Dynamic processing of refueling logs to calculate average fuel consumption, consumption since the last refuel, and odometer distance driven over multiple intervals (past month, 6 months, year, and all-time).
+- **Dashboard Statistics**: Average fuel consumption and consumption since the last refuel from refueling logs, plus distance driven over multiple intervals (past month, 6 months, year, and all-time) from every mileage reading – refuel, odometer and service records.
 - **Interactive Visualizations**: Dynamic trend charts for fuel prices and consumption rates using Chart.js.
 - **Log Management**: Chronological logs for fuel purchases and services, featuring segment filters, search capabilities, and inline record editing and deletion.
 - **Vehicle Management**: Interface to add, update, delete, and star vehicles. Setting a new default vehicle automatically updates active user contexts.

@@ -6,6 +6,7 @@ import StatCard from '@/components/StatCard.vue'
 import LineChart from '@/components/LineChart.vue'
 import ServiceAlerts from '@/components/ServiceAlerts.vue'
 import ServiceOverview from '@/components/ServiceOverview.vue'
+import { toReadings, distanceSince } from '@/lib/mileage'
 
 // Types
 type RefuelRecord = {
@@ -22,8 +23,19 @@ type RefuelRecord = {
   createdAt: string
 }
 
+// Odometer and service records also carry a mileage reading
+type MileageRecord = {
+  id: string
+  vehicleId: string
+  mileage: number
+  date?: string
+  createdAt: string
+}
+
 // Refs
 const refuels = ref<RefuelRecord[]>([])
+const odometerRecords = ref<MileageRecord[]>([])
+const serviceRecords = ref<MileageRecord[]>([])
 const isLoading = ref(true)
 
 // Composables
@@ -39,10 +51,23 @@ async function fetchRefuels() {
   }
 }
 
+// Fetch odometer and service records (mileage readings only)
+async function fetchMileageRecords() {
+  const load = async (url: string, target: typeof odometerRecords) => {
+    try {
+      const res = await api.get(url)
+      target.value = res.data
+    } catch (err) {
+      console.error(`Failed to fetch ${url} for dashboard:`, err)
+    }
+  }
+  await Promise.all([load('/odometer', odometerRecords), load('/services', serviceRecords)])
+}
+
 // Load all data
 onMounted(async () => {
   isLoading.value = true
-  await Promise.all([fetchVehicles(), fetchRefuels()])
+  await Promise.all([fetchVehicles(), fetchRefuels(), fetchMileageRecords()])
   isLoading.value = false
 })
 
@@ -56,6 +81,14 @@ const activeVehicleRefuels = computed(() => {
   return refuels.value
     .filter((r) => r.vehicleId === defaultVehicle.value!.id)
     .sort((a, b) => new Date(a.date || a.createdAt).getTime() - new Date(b.date || b.createdAt).getTime())
+})
+
+// Mileage readings from refuels, odometer and service records of the active vehicle
+const activeVehicleReadings = computed(() => {
+  if (!defaultVehicle.value) return []
+  const id = defaultVehicle.value.id
+  const ofVehicle = (list: MileageRecord[]) => (Array.isArray(list) ? list.filter((r) => r.vehicleId === id) : [])
+  return toReadings([...ofVehicle(refuels.value), ...ofVehicle(odometerRecords.value), ...ofVehicle(serviceRecords.value)])
 })
 
 const avgConsumptionAllTime = computed(() => {
@@ -91,30 +124,9 @@ const distanceSinceLastRefuel = computed(() => {
 })
 
 function getDistanceForDays(days: number | null): string {
-  const list = activeVehicleRefuels.value
-  if (list.length < 2) return 'N/A'
-
-  let filtered = list
-  if (days !== null) {
-    const cutoffDate = new Date()
-    cutoffDate.setDate(cutoffDate.getDate() - days)
-    filtered = list.filter((r) => new Date(r.date || r.createdAt).getTime() >= cutoffDate.getTime())
-  }
-
-  if (filtered.length === 0) return '0 km'
-
-  const latestInPeriod = filtered[filtered.length - 1]!
-  const earliestInPeriod = filtered[0]!
-
-  // Find the refuel record right before earliestInPeriod
-  const earliestIndex = list.findIndex((r) => r.id === earliestInPeriod.id)
-  let startMileage = earliestInPeriod.mileage
-  if (earliestIndex > 0) {
-    startMileage = list[earliestIndex - 1]!.mileage
-  }
-
-  const dist = latestInPeriod.mileage - startMileage
-  return dist >= 0 ? `${dist.toLocaleString()} km` : 'N/A'
+  const cutoff = days === null ? null : Date.now() - days * 86400000
+  const dist = distanceSince(activeVehicleReadings.value, cutoff)
+  return dist === null ? 'N/A' : `${dist.toLocaleString()} km`
 }
 
 // Chart Data

@@ -120,10 +120,61 @@ describe('HomeView', () => {
     respond(vehicles, refuels)
     const w = await mountHome()
     expect(statValue(w, 'kilometers-driven', 'Since last refuel')).toBe('500 km')
-    expect(statValue(w, 'kilometers-driven', 'Past month')).toBe(`${(900).toLocaleString()} km`)
-    expect(statValue(w, 'kilometers-driven', 'Past 6 months')).toBe(`${(1400).toLocaleString()} km`)
-    expect(statValue(w, 'kilometers-driven', 'Past year')).toBe(`${(1400).toLocaleString()} km`)
+    // period start mileage is interpolated between the readings around the cutoff
+    expect(statValue(w, 'kilometers-driven', 'Past month')).toBe('589 km')
+    expect(statValue(w, 'kilometers-driven', 'Past 6 months')).toBe(`${(1033).toLocaleString()} km`)
+    expect(statValue(w, 'kilometers-driven', 'Past year')).toBe(`${(1342).toLocaleString()} km`)
     expect(statValue(w, 'kilometers-driven', 'All time')).toBe(`${(1400).toLocaleString()} km`)
+  })
+
+  describe('mileage from odometer and service records', () => {
+    const odometer = (id: string, mileage: number, ago: number, vehicleId = 'v2') => ({
+      id, userId: 'u', vehicleId, mileage, date: daysAgo(ago), createdAt: daysAgo(ago),
+    })
+    const service = (id: string, mileage: number, ago: number, vehicleId = 'v2') => ({
+      id, userId: 'u', vehicleId, serviceType: 'engine-oil', cost: 0, mileage, date: daysAgo(ago), createdAt: daysAgo(ago),
+    })
+
+    function respondAll(refuelsData: unknown[], odometerData: unknown[], servicesData: unknown[]) {
+      apiMock.get.mockImplementation(async (url: string) => {
+        if (url === '/vehicles') return { data: vehicles }
+        if (url === '/refuels') return { data: refuelsData }
+        if (url === '/odometer') return { data: odometerData }
+        if (url === '/services') return { data: servicesData }
+        return { data: {} }
+      })
+    }
+
+    it('counts a newer odometer record in the driven distances', async () => {
+      respondAll(refuels, [odometer('o1', 12000, 1), odometer('o-other', 50000, 1, 'v1')], [])
+      const w = await mountHome()
+      expect(statValue(w, 'kilometers-driven', 'All time')).toBe(`${(2000).toLocaleString()} km`)
+      expect(statValue(w, 'kilometers-driven', 'Past year')).toBe(`${(1942).toLocaleString()} km`)
+      expect(statValue(w, 'kilometers-driven', 'Past month')).toBe(`${(1189).toLocaleString()} km`)
+      // distance between the last two refuels is unchanged
+      expect(statValue(w, 'kilometers-driven', 'Since last refuel')).toBe('500 km')
+    })
+
+    it('counts a newer service record in the driven distances', async () => {
+      respondAll(refuels, [], [service('s1', 11800, 1), service('s-other', 50000, 1, 'v1')])
+      const w = await mountHome()
+      expect(statValue(w, 'kilometers-driven', 'All time')).toBe(`${(1800).toLocaleString()} km`)
+    })
+
+    it('shows distances with fewer than two refuels when other readings exist', async () => {
+      respondAll([refuel('r1', 10000, 30, 20)], [odometer('o1', 10600, 5)], [service('s1', 10300, 10)])
+      const w = await mountHome()
+      expect(statValue(w, 'kilometers-driven', 'All time')).toBe('600 km')
+      expect(statValue(w, 'kilometers-driven', 'Past month')).toBe('600 km')
+    })
+
+    it('keeps consumption based on refuels only', async () => {
+      respondAll(refuels, [odometer('o1', 12000, 1)], [service('s1', 11800, 1)])
+      const w = await mountHome()
+      expect(statValue(w, 'refuel-stats', 'Avg consumption')).toBe('7.50 L/100')
+      expect(statValue(w, 'refuel-stats', 'Since last refuel')).toBe('6.00 L/100')
+      expect(w.findAllComponents({ name: 'LineChart' })[1]!.props('data')).toEqual([7, 40 / 4, 6])
+    })
   })
 
   it('renders price and consumption charts', async () => {
