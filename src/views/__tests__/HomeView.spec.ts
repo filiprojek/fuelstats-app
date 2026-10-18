@@ -168,6 +168,46 @@ describe('HomeView', () => {
       expect(statValue(w, 'kilometers-driven', 'Past month')).toBe('600 km')
     })
 
+    describe('where the history starts', () => {
+      const start = (mileage: number, ago: number) => ({ ...odometer('o-start', mileage, ago), isStart: true })
+
+      it('ignores older service and odometer records before the first refuel', async () => {
+        respondAll(refuels, [odometer('o-old', 9000, 450)], [service('s-old', 8000, 500)])
+        const w = await mountHome()
+        expect(statValue(w, 'kilometers-driven', 'All time')).toBe(`${(1400).toLocaleString()} km`)
+      })
+
+      it('starts at the odometer record marked as start', async () => {
+        respondAll(refuels, [start(9800, 450), odometer('o-other', 9500, 460, 'v1')], [service('s-old', 8000, 500)])
+        const w = await mountHome()
+        expect(statValue(w, 'kilometers-driven', 'All time')).toBe(`${(1600).toLocaleString()} km`)
+      })
+
+      it('accepts a start record at 0 km for a new car', async () => {
+        respondAll(refuels, [start(0, 450)], [])
+        const w = await mountHome()
+        expect(statValue(w, 'kilometers-driven', 'All time')).toBe(`${(11400).toLocaleString()} km`)
+      })
+
+      it('prefers the start record even when refuels are older', async () => {
+        respondAll(refuels, [start(10500, 100)], [])
+        const w = await mountHome()
+        expect(statValue(w, 'kilometers-driven', 'All time')).toBe('900 km')
+      })
+
+      it('ignores start records of other vehicles', async () => {
+        respondAll(refuels, [{ ...start(1000, 600), vehicleId: 'v1' }], [service('s-old', 8000, 500)])
+        const w = await mountHome()
+        expect(statValue(w, 'kilometers-driven', 'All time')).toBe(`${(1400).toLocaleString()} km`)
+      })
+
+      it('uses every reading when there is neither a refuel nor a start record', async () => {
+        respondAll([], [odometer('o1', 10600, 5)], [service('s1', 10000, 20)])
+        const w = await mountHome()
+        expect(statValue(w, 'kilometers-driven', 'All time')).toBe('600 km')
+      })
+    })
+
     it('keeps consumption based on refuels only', async () => {
       respondAll(refuels, [odometer('o1', 12000, 1)], [service('s1', 11800, 1)])
       const w = await mountHome()

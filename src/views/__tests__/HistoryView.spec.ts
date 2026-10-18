@@ -24,9 +24,9 @@ const services = [
 ]
 const odometers = [{ id: 'o1', userId: 'u', vehicleId: 'v1', mileage: 11000, note: 'trip', date: '2026-10-10T10:00:00Z', createdAt: '' }]
 
-async function mountView() {
+async function mountView(odometerList: unknown[] = odometers) {
   apiMock.get.mockImplementation(async (url: string) => {
-    const data: Record<string, unknown> = { '/vehicles': vehicles, '/refuels': refuels, '/services': services, '/odometer': odometers }
+    const data: Record<string, unknown> = { '/vehicles': vehicles, '/refuels': refuels, '/services': services, '/odometer': odometerList }
     return { data: data[url] ?? [] }
   })
   const router = makeRouter([{ path: '/add/:type?', name: 'add', component: { template: '<p />' } }])
@@ -106,6 +106,61 @@ describe('History view', () => {
       expect(w.find('.photo-viewer-backdrop img').attributes('src')).toBe('http://api.test/uploads/a.jpg')
       await w.find('.photo-viewer-backdrop').trigger('click')
       expect(w.find('.photo-viewer-backdrop').exists()).toBe(false)
+    })
+  })
+
+  describe('start odometer record', () => {
+    const start = { id: 'o0', userId: 'u', vehicleId: 'v1', mileage: 9000, note: 'bought', date: '2026-09-01T10:00:00Z', createdAt: '', isStart: true }
+    const editOdometer = async (w: ReturnType<typeof mount>, id: string) => {
+      const card = w.findAll('.history-card.odometer').find((c) => c.attributes('data-id') === id)!
+      await card.find('.btn-edit').trigger('click')
+    }
+
+    it('marks the start record in the list', async () => {
+      const w = await mountView([...odometers, start])
+      const cards = w.findAll('.history-card.odometer')
+      expect(cards.map((c) => c.find('.start-badge').exists())).toEqual([false, true])
+    })
+
+    it('lets a vehicle without a start record mark one while editing', async () => {
+      apiMock.put.mockResolvedValue({})
+      const w = await mountView()
+      await editOdometer(w, 'o1')
+      const box = w.find<HTMLInputElement>('#edit_hist_is_start')
+      expect(box.element.checked).toBe(false)
+      await box.setValue(true)
+      await w.find('.edit-modal form').trigger('submit')
+      await flushPromises()
+      expect(apiMock.put).toHaveBeenCalledWith('/odometer/o1', expect.objectContaining({ isStart: true }))
+    })
+
+    it('hides the option on other records once the vehicle has a start record', async () => {
+      apiMock.put.mockResolvedValue({})
+      const w = await mountView([...odometers, start])
+      await editOdometer(w, 'o1')
+      expect(w.find('#edit_hist_is_start').exists()).toBe(false)
+      await w.find('.edit-modal form').trigger('submit')
+      await flushPromises()
+      expect(apiMock.put).toHaveBeenCalledWith('/odometer/o1', expect.objectContaining({ isStart: false }))
+    })
+
+    it('shows the option again when the record is moved to a vehicle without a start record', async () => {
+      const w = await mountView([...odometers, start])
+      await editOdometer(w, 'o1')
+      await w.find('#edit_hist_vehicle').setValue('v2')
+      expect(w.find('#edit_hist_is_start').exists()).toBe(true)
+    })
+
+    it('lets the start record itself be unmarked', async () => {
+      apiMock.put.mockResolvedValue({})
+      const w = await mountView([...odometers, start])
+      await editOdometer(w, 'o0')
+      const box = w.find<HTMLInputElement>('#edit_hist_is_start')
+      expect(box.element.checked).toBe(true)
+      await box.setValue(false)
+      await w.find('.edit-modal form').trigger('submit')
+      await flushPromises()
+      expect(apiMock.put).toHaveBeenCalledWith('/odometer/o0', expect.objectContaining({ isStart: false }))
     })
   })
 

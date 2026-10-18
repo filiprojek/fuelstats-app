@@ -16,9 +16,13 @@ const vehicles = [
   { id: 'v2', name: 'Fabia', registrationPlate: 'B', fuelType: 'gasoline95', isDefault: false, createdAt: '', userId: 'u' },
 ]
 
-async function mountAt(path: string, vehicleList: unknown[] = vehicles) {
+async function mountAt(path: string, vehicleList: unknown[] = vehicles, odometerList: unknown[] | Error = []) {
   apiMock.get.mockImplementation(async (url: string) => {
     if (url === '/vehicles') return { data: vehicleList }
+    if (url === '/odometer') {
+      if (odometerList instanceof Error) throw odometerList
+      return { data: odometerList }
+    }
     if (url === '/vehicles/service-tasks') return { data: [{ _id: 't1', name: 'Timing belt' }] }
     return { data: [] }
   })
@@ -209,6 +213,58 @@ describe('AddView', () => {
       await flushPromises()
       expect(wrapper.find('.app-dialog').text()).toContain(title)
       expect(wrapper.find('.app-dialog').text()).toContain('Missing fields')
+    })
+  })
+
+  describe('start odometer record', () => {
+    const startOf = (vehicleId: string) => ({ id: 'o-start', vehicleId, mileage: 5000, date: '2024-01-01', createdAt: '2024-01-01', isStart: true })
+
+    it('offers to mark the record as start of the odometer history', async () => {
+      const { wrapper } = await mountAt('/add/odometer')
+      const box = wrapper.find<HTMLInputElement>('#odometer_is_start')
+      expect(box.exists()).toBe(true)
+      expect(box.element.checked).toBe(false)
+    })
+
+    it('sends isStart when ticked', async () => {
+      apiMock.post.mockResolvedValue({ data: {} })
+      const { wrapper } = await mountAt('/add/odometer')
+      await wrapper.find('#odometer_mileage').setValue('5000')
+      await wrapper.find('#odometer_is_start').setValue(true)
+      await wrapper.find('form').trigger('submit')
+      await flushPromises()
+      expect(apiMock.post).toHaveBeenCalledWith('/odometer', expect.objectContaining({ mileage: 5000, isStart: true }))
+    })
+
+    it('sends isStart false by default', async () => {
+      apiMock.post.mockResolvedValue({ data: {} })
+      const { wrapper } = await mountAt('/add/odometer')
+      await wrapper.find('form').trigger('submit')
+      await flushPromises()
+      expect(apiMock.post).toHaveBeenCalledWith('/odometer', expect.objectContaining({ isStart: false }))
+    })
+
+    it('hides the option when the selected vehicle already has a start record', async () => {
+      const { wrapper } = await mountAt('/add/odometer', vehicles, [startOf('v1'), { ...startOf('v2'), id: 'o2', isStart: false }])
+      expect(wrapper.find('#odometer_is_start').exists()).toBe(false)
+
+      await wrapper.find('#vehicle').setValue('v2')
+      expect(wrapper.find('#odometer_is_start').exists()).toBe(true)
+    })
+
+    it('never sends isStart for a vehicle that already has a start record', async () => {
+      apiMock.post.mockResolvedValue({ data: {} })
+      const { wrapper } = await mountAt('/add/odometer', vehicles, [startOf('v2')])
+      await wrapper.find('#odometer_is_start').setValue(true)
+      await wrapper.find('#vehicle').setValue('v2')
+      await wrapper.find('form').trigger('submit')
+      await flushPromises()
+      expect(apiMock.post).toHaveBeenCalledWith('/odometer', expect.objectContaining({ vehicleId: 'v2', isStart: false }))
+    })
+
+    it('still offers the option when odometer records cannot be loaded', async () => {
+      const { wrapper } = await mountAt('/add/odometer', vehicles, new Error('offline'))
+      expect(wrapper.find('#odometer_is_start').exists()).toBe(true)
     })
   })
 

@@ -117,6 +117,14 @@
       <TextInput v-model="formData.mileage" id="odometer_mileage" type="number" placeholder="Mileage (Kilometers)" />
       <TextInput v-model="formData.note" id="odometer_note" type="text" placeholder="Note (optional)" />
 
+      <label v-if="canMarkAsStart" class="checkbox-row" for="odometer_is_start">
+        <input id="odometer_is_start" v-model="markAsStart" type="checkbox" />
+        <span>
+          Start of odometer history
+          <small>Kilometers driven are counted from this reading, e.g. when you bought the car.</small>
+        </span>
+      </label>
+
       <IconLabelButton icon="speed" label="Create odometer record" inline elevated />
     </form>
 
@@ -259,7 +267,23 @@ function getErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err)
 }
 
+// Vehicles that already have an odometer record marked as start of their history
+const startVehicleIds = ref(new Set<string>())
+const markAsStart = ref(false)
+const canMarkAsStart = computed(() => !startVehicleIds.value.has(formData.vehicleId))
+
+async function fetchStartRecords() {
+  try {
+    const res = await api.get('/odometer')
+    const records: { vehicleId: string; isStart?: boolean }[] = Array.isArray(res.data) ? res.data : []
+    startVehicleIds.value = new Set(records.filter((r) => r.isStart).map((r) => r.vehicleId))
+  } catch (err) {
+    console.error('Failed to load odometer records:', err)
+  }
+}
+
 function resetForm() {
+  markAsStart.value = false
   formData.liters = ''
   formData.pricePerLiter = ''
   formData.totalPrice = ''
@@ -286,7 +310,7 @@ function resetForm() {
 const { vehicles, fetchVehicles } = useVehicles()
 
 onMounted(async () => {
-  await fetchVehicles()
+  await Promise.all([fetchVehicles(), fetchStartRecords()])
 
   // Fetch service tasks list
   try {
@@ -441,10 +465,12 @@ async function handleOdometer() {
     mileage: Number(formData.mileage),
     note: formData.note || null,
     date: new Date(formData.date).toISOString(),
+    isStart: canMarkAsStart.value && markAsStart.value,
   }
   try {
     await api.post('/odometer', body)
     showDialog('success', 'Odometer record created successfully', '', 1500)
+    if (body.isStart) startVehicleIds.value = new Set([...startVehicleIds.value, body.vehicleId])
     resetForm()
     setTimeout(() => {
       router.push('/history')

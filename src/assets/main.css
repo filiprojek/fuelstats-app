@@ -21,3 +21,28 @@ label {
 .material-fill {
   font-variation-settings: 'FILL' 1;
 }
+
+/* Checkbox with a title and an optional hint below it */
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-row input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0.15rem 0 0;
+  flex-shrink: 0;
+  accent-color: var(--color-primary-light);
+  cursor: pointer;
+}
+
+.checkbox-row small {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}

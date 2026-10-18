@@ -54,7 +54,7 @@
     </div>
 
     <div v-else class="history-list">
-      <div v-for="item in filteredItems" :key="item.id" class="history-card" :class="item.type">
+      <div v-for="item in filteredItems" :key="item.id" :data-id="item.id" class="history-card" :class="item.type">
         <div class="card-header">
           <div class="type-badge" :class="item.type">
             <span class="material-symbols-outlined">
@@ -63,6 +63,7 @@
             <span class="type-text">
               {{ item.type === 'refuel' ? 'Refuel' : item.type === 'odometer' ? 'Odometer Log' : getServiceLabel(item.serviceType || '') }}
             </span>
+            <span v-if="item.isStart" class="start-badge" title="Kilometers driven are counted from this reading">Start</span>
           </div>
           <span class="date">{{ formatDate(item.date) }}</span>
         </div>
@@ -221,6 +222,14 @@
           <TextInput v-model="editForm.mileage" id="edit_hist_mileage" type="number" placeholder="Odometer (km)" />
           <TextInput v-model="editForm.note" id="edit_hist_note" type="text" placeholder="Note (optional)" />
 
+          <label v-if="editType === 'odometer' && canMarkEditAsStart" class="checkbox-row" for="edit_hist_is_start">
+            <input id="edit_hist_is_start" v-model="editForm.isStart" type="checkbox" />
+            <span>
+              Start of odometer history
+              <small>Kilometers driven are counted from this reading, e.g. when you bought the car.</small>
+            </span>
+          </label>
+
           <div class="modal-actions">
             <button type="button" class="btn-cancel" @click="closeEdit">Cancel</button>
             <IconLabelButton type="submit" icon="save" label="Save Changes" inline elevated />
@@ -293,6 +302,7 @@ type OdometerRecord = {
   note: string | null
   date: string
   createdAt: string
+  isStart?: boolean
 }
 
 type HistoryType = 'all' | 'refuel' | 'service' | 'odometer'
@@ -310,6 +320,7 @@ type HistoryItem = {
   cost?: number
   serviceType?: string
   photos?: string[]
+  isStart?: boolean
   data: RefuelRecord | ServiceRecord | OdometerRecord
 }
 
@@ -359,6 +370,7 @@ function removeNewPhoto(index: number) {
 }
 
 const editForm = reactive({
+  isStart: false,
   vehicleId: '',
   fuelType: '',
   note: '',
@@ -490,6 +502,7 @@ const filteredItems = computed(() => {
       vehicleId: o.vehicleId,
       note: o.note,
       mileage: o.mileage,
+      isStart: !!o.isStart,
       data: o,
     })),
   ]
@@ -567,7 +580,13 @@ function formatToDatetimeLocal(dateStr: string): string {
   return localDate.toISOString().slice(0, 16)
 }
 
+// Only one start record per vehicle: offer the option unless another record of the vehicle is the start
+const canMarkEditAsStart = computed(
+  () => !odometers.value.some((o) => o.isStart && o.vehicleId === editForm.vehicleId && o.id !== editId.value),
+)
+
 function startEdit(item: HistoryItem) {
+  editForm.isStart = !!item.isStart
   editId.value = item.id
   editType.value = item.type
   editForm.vehicleId = item.vehicleId
@@ -629,6 +648,7 @@ async function saveRecord() {
         mileage: Number(editForm.mileage),
         note: editForm.note || null,
         date: new Date(editForm.date).toISOString(),
+        isStart: canMarkEditAsStart.value && editForm.isStart,
       })
       showDialog('success', 'Odometer record updated successfully', '', 1500)
       await fetchOdometers()
@@ -865,6 +885,17 @@ async function confirmDelete(item: HistoryItem) {
   &.service {
     color: var(--accent-warning);
   }
+}
+
+.start-badge {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-primary-light);
+  color: var(--color-primary-light);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .date {

@@ -30,6 +30,7 @@ type MileageRecord = {
   mileage: number
   date?: string
   createdAt: string
+  isStart?: boolean
 }
 
 // Refs
@@ -83,12 +84,26 @@ const activeVehicleRefuels = computed(() => {
     .sort((a, b) => new Date(a.date || a.createdAt).getTime() - new Date(b.date || b.createdAt).getTime())
 })
 
-// Mileage readings from refuels, odometer and service records of the active vehicle
+// Mileage readings from refuels, odometer and service records of the active vehicle.
+// The history starts at the odometer record marked as start, otherwise at the first refuel;
+// older readings (e.g. services from previous owners) are ignored.
 const activeVehicleReadings = computed(() => {
   if (!defaultVehicle.value) return []
   const id = defaultVehicle.value.id
   const ofVehicle = (list: MileageRecord[]) => (Array.isArray(list) ? list.filter((r) => r.vehicleId === id) : [])
-  return toReadings([...ofVehicle(refuels.value), ...ofVehicle(odometerRecords.value), ...ofVehicle(serviceRecords.value)])
+
+  const odometers = ofVehicle(odometerRecords.value)
+  const vehicleRefuels = ofVehicle(refuels.value)
+  const startRecord = odometers.find((r) => r.isStart)
+  const readings = toReadings([...vehicleRefuels, ...odometers.filter((r) => r !== startRecord), ...ofVehicle(serviceRecords.value)])
+
+  if (startRecord) {
+    // added directly so a new car's 0 km start isn't dropped as an unknown reading
+    const start = { mileage: startRecord.mileage, time: new Date(startRecord.date || startRecord.createdAt).getTime() }
+    return [start, ...readings.filter((r) => r.time >= start.time)]
+  }
+  const firstRefuel = toReadings(vehicleRefuels)[0]
+  return firstRefuel ? readings.filter((r) => r.time >= firstRefuel.time) : readings
 })
 
 const avgConsumptionAllTime = computed(() => {
