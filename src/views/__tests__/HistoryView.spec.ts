@@ -6,6 +6,8 @@ import { makeRouter, axiosError } from '@/test/utils'
 
 const apiMock = vi.hoisted(() => ({ get: vi.fn(), put: vi.fn(), delete: vi.fn() }))
 vi.mock('@/lib/api', () => ({ default: apiMock }))
+const imagesMock = vi.hoisted(() => ({ compressImage: vi.fn(async (file: File) => `data:compressed/${file.name}`) }))
+vi.mock('@/lib/images', () => imagesMock)
 
 const vehicles = [
   { id: 'v1', name: 'Octavia', registrationPlate: 'A', fuelType: 'diesel', isDefault: true, createdAt: '', userId: 'u' },
@@ -129,13 +131,6 @@ describe('History view', () => {
 
     it('updates a service record keeping and removing photos', async () => {
       apiMock.put.mockResolvedValue({})
-      class FakeReader {
-        onload: ((e: { target: { result: string } }) => void) | null = null
-        readAsDataURL() {
-          this.onload?.({ target: { result: 'data:new' } })
-        }
-      }
-      vi.stubGlobal('FileReader', FakeReader)
       const w = await mountView()
       await editCard(w, 'service')
       expect((w.find('#edit_hist_service_type').element as HTMLSelectElement).value).toBe('engine-oil')
@@ -143,34 +138,28 @@ describe('History view', () => {
       const input = w.find('.edit-modal input[type="file"]')
       Object.defineProperty(input.element, 'files', { value: [new File(['x'], 'x.png')] })
       await input.trigger('change')
+      await flushPromises()
+      expect(imagesMock.compressImage).toHaveBeenCalledWith(expect.objectContaining({ name: 'x.png' }))
       await w.find('.edit-modal form').trigger('submit')
       await flushPromises()
-      expect(apiMock.put).toHaveBeenLastCalledWith('/services/s1', expect.objectContaining({ cost: 2500, photos: ['/uploads/a.jpg', 'data:new'] }))
+      expect(apiMock.put).toHaveBeenLastCalledWith('/services/s1', expect.objectContaining({ cost: 2500, photos: ['/uploads/a.jpg', 'data:compressed/x.png'] }))
 
       await editCard(w, 'service')
       await w.find('[aria-label="Remove saved photo"]').trigger('click')
       await w.find('.edit-modal form').trigger('submit')
       await flushPromises()
       expect(apiMock.put).toHaveBeenLastCalledWith('/services/s1', expect.objectContaining({ photos: [] }))
-      vi.unstubAllGlobals()
     })
 
     it('removes newly added photos before saving', async () => {
-      class FakeReader {
-        onload: ((e: { target: { result: string } }) => void) | null = null
-        readAsDataURL() {
-          this.onload?.({ target: { result: 'data:new' } })
-        }
-      }
-      vi.stubGlobal('FileReader', FakeReader)
       const w = await mountView()
       await editCard(w, 'service')
       const input = w.find('.edit-modal input[type="file"]')
       Object.defineProperty(input.element, 'files', { value: [new File(['x'], 'x.png')] })
       await input.trigger('change')
+      await flushPromises()
       await w.find('[aria-label="Remove new photo"]').trigger('click')
       expect(w.findAll('.edit-modal .photo-preview-item')).toHaveLength(1)
-      vi.unstubAllGlobals()
     })
 
     it('updates an odometer record', async () => {

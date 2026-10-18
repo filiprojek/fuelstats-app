@@ -8,6 +8,8 @@ import { makeRouter, axiosError } from '@/test/utils'
 
 const apiMock = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }))
 vi.mock('@/lib/api', () => ({ default: apiMock }))
+const imagesMock = vi.hoisted(() => ({ compressImage: vi.fn(async (file: File) => `data:compressed/${file.name}`) }))
+vi.mock('@/lib/images', () => imagesMock)
 
 const vehicles = [
   { id: 'v1', name: 'Octavia', registrationPlate: 'A', fuelType: 'diesel', isDefault: true, createdAt: '', userId: 'u' },
@@ -211,22 +213,43 @@ describe('AddView', () => {
   })
 
   describe('photos', () => {
-    it('previews uploaded photos and removes them', async () => {
-      class FakeReader {
-        onload: ((e: { target: { result: string } }) => void) | null = null
-        readAsDataURL(file: File) {
-          this.onload?.({ target: { result: `data:${file.name}` } })
-        }
-      }
-      vi.stubGlobal('FileReader', FakeReader)
-      const { wrapper } = await mountAt('/add/service')
+    async function upload(wrapper: Awaited<ReturnType<typeof mountAt>>['wrapper'], names: string[]) {
       const input = wrapper.find('input[type="file"]')
-      Object.defineProperty(input.element, 'files', { value: [new File(['a'], 'a.png'), new File(['b'], 'b.png')] })
+      Object.defineProperty(input.element, 'files', { value: names.map((n) => new File([n], n)), configurable: true })
       await input.trigger('change')
-      expect(wrapper.findAll('.photo-preview-item img').map((i) => i.attributes('src'))).toEqual(['data:a.png', 'data:b.png'])
+      await flushPromises()
+    }
+
+    it('compresses uploaded photos, previews them and removes them', async () => {
+      const { wrapper } = await mountAt('/add/service')
+      await upload(wrapper, ['a.png', 'b.png'])
+      expect(imagesMock.compressImage).toHaveBeenCalledTimes(2)
+      expect(wrapper.findAll('.photo-preview-item img').map((i) => i.attributes('src'))).toEqual([
+        'data:compressed/a.png',
+        'data:compressed/b.png',
+      ])
       await wrapper.find('.remove-photo-btn').trigger('click')
       expect(wrapper.findAll('.photo-preview-item')).toHaveLength(1)
-      vi.unstubAllGlobals()
+    })
+
+    it('sends the compressed photos with the service record', async () => {
+      apiMock.post.mockResolvedValue({ data: {} })
+      const { wrapper } = await mountAt('/add/service?serviceType=engine-oil')
+      await upload(wrapper, ['receipt.jpg'])
+      await wrapper.find('#cost').setValue('100')
+      await wrapper.find('#mileage').setValue('1000')
+      await wrapper.find('form').trigger('submit')
+      await flushPromises()
+      expect(apiMock.post).toHaveBeenCalledWith('/services', expect.objectContaining({ photos: ['data:compressed/receipt.jpg'] }))
+    })
+
+    it('shows a server message when the upload is still too large', async () => {
+      apiMock.post.mockRejectedValue(axiosError(413, { message: 'Request too large (limit 25mb). Try fewer or smaller photos.' }))
+      const { wrapper } = await mountAt('/add/service?serviceType=engine-oil')
+      await upload(wrapper, ['huge.jpg'])
+      await wrapper.find('form').trigger('submit')
+      await flushPromises()
+      expect(wrapper.text()).toContain('Try fewer or smaller photos')
     })
   })
 })

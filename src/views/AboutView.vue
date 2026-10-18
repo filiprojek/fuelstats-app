@@ -245,6 +245,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import axios from 'axios'
 import api from '@/lib/api'
+import { compressImage } from '@/lib/images'
 import { useVehicles } from '@/composables/useVehicles'
 import SegmentSwitch, { type SegmentOption } from '@/components/SegmentSwitch.vue'
 import TextInput from '@/components/TextInput.vue'
@@ -342,19 +343,10 @@ function closePhotoModal() {
   activeViewerPhoto.value = null
 }
 
-function handleEditPhotoUpload(event: Event) {
-  const files = (event.target as HTMLInputElement).files
-  if (!files) return
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i]!
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      if (e.target?.result && typeof e.target.result === 'string') {
-        editNewPhotos.value.push(e.target.result)
-      }
-    }
-    reader.readAsDataURL(file)
+async function handleEditPhotoUpload(event: Event) {
+  const files = Array.from((event.target as HTMLInputElement).files ?? [])
+  for (const file of files) {
+    editNewPhotos.value.push(await compressImage(file))
   }
 }
 

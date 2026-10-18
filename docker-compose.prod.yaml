@@ -23,6 +23,7 @@ services:
       TZ: 'Europe/Prague'
       JWT_SECRET: 'change_this_to_a_secure_random_string'
       # AUTH_REMEMBER_DAYS: '30' # how long "Remember me" keeps users signed in
+      # BODY_LIMIT: '25mb' # max request size (photos); a proxy in front needs the same limit
       DB_URI: 'mongodb://root:root@mongodb:27017/fuelstats?authSource=admin'
       APP_PORT: 6060
       APP_HOSTNAME: '0.0.0.0'

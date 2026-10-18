@@ -148,6 +148,7 @@ import TextInput from '@/components/TextInput.vue'
 import IconLabelButton from '@/components/IconLabelButton.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import api from '@/lib/api'
+import { compressImage } from '@/lib/images'
 import { useVehicles } from '@/composables/useVehicles'
 import { FUEL_TYPES, SERVICE_TYPES } from '@/lib/constants'
 
@@ -193,19 +194,10 @@ const options: SegmentOption<Mode>[] = [
 const uploadedPhotos = ref<string[]>([])
 const serviceTasks = ref<any[]>([])
 
-function handlePhotoUpload(event: Event) {
-  const files = (event.target as HTMLInputElement).files
-  if (!files) return
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i]!
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      if (e.target?.result && typeof e.target.result === 'string') {
-        uploadedPhotos.value.push(e.target.result)
-      }
-    }
-    reader.readAsDataURL(file)
+async function handlePhotoUpload(event: Event) {
+  const files = Array.from((event.target as HTMLInputElement).files ?? [])
+  for (const file of files) {
+    uploadedPhotos.value.push(await compressImage(file))
   }
 }
 
