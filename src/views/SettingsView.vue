@@ -239,6 +239,7 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import api from '@/lib/api'
+import { clearToken } from '@/lib/session'
 import { useAuthStore } from '@/stores/auth'
 import { useVehicles } from '@/composables/useVehicles'
 import { CHANGELOG_DATA } from '@/data/changelog'
@@ -320,12 +321,12 @@ function getErrorMessage(err: unknown): string {
 // Log Out
 async function logout() {
   try {
-    localStorage.removeItem('token')
+    clearToken()
     await api.post('/auth/signout')
     window.location.href = '/'
   } catch (err) {
     console.error(err)
-    localStorage.removeItem('token')
+    clearToken()
     window.location.href = '/'
   }
 }

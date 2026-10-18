@@ -51,7 +51,7 @@ async function link(providerId: string) {
   busy.value = providerId
   try {
     const res = await api.post(`/auth/oidc/${providerId}/link`)
-    redirectTo(providerStartUrl(providerId, res.data.linkToken))
+    redirectTo(providerStartUrl(providerId, { linkToken: res.data.linkToken }))
   } catch (e) {
     emit('notify', 'danger', 'Could not link provider', errorMessage(e, 'Linking failed'))
   } finally {

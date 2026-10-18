@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import api from '@/lib/api'
+import { refreshSession } from '@/lib/session'
 import HomeView from '../views/HomeView.vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -84,6 +85,9 @@ router.beforeEach(async (to) => {
   if (to.meta.requiresAuth && !auth.user) {
     return '/login'
   }
+
+  // keep active users signed in; only sends a request once the token is getting old
+  if (auth.user) void refreshSession()
 })
 
 export default router

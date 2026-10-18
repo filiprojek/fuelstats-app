@@ -9,6 +9,7 @@ This repository contains the frontend client for Fuelstats, a self-hosted dashbo
 - **Log Management**: Chronological logs for fuel purchases and services, featuring segment filters, search capabilities, and inline record editing and deletion.
 - **Vehicle Management**: Interface to add, update, delete, and star vehicles. Setting a new default vehicle automatically updates active user contexts.
 - **CSV Data Operations**: Standalone CSV export and import tools for refuel and service records, featuring fallback vehicle handling if row-level vehicle data is omitted.
+- **Remember Me**: Stay signed in for 30 days (configurable on the server with `AUTH_REMEMBER_DAYS`), renewed automatically whenever the app is used. Without it the session ends when the browser is closed.
 - **Single Sign-On**: Log in with email/password or through Authelia and any other OpenID Connect provider – both lead to the same account. Providers can be linked and unlinked in Settings, and accounts created through a provider can set a password later.
 - **Form Calculators**: Float-safe reciprocal form calculators in the refueling input page that automatically compute total cost, liters, or price-per-liter based on user inputs.
 

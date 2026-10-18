@@ -38,6 +38,7 @@ describe('api client', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorage.clear()
+    sessionStorage.clear()
     routerMock.push.mockReset()
     routerMock.currentRoute.value.name = 'home'
     routerMock.currentRoute.value.meta = { requiresAuth: true }
@@ -60,6 +61,17 @@ describe('api client', () => {
     expect(seen?.headers.Authorization).toBe('Bearer abc')
   })
 
+  it('adds the bearer token of a browser-session login', async () => {
+    sessionStorage.setItem('token', 'sess')
+    let seen: InternalAxiosRequestConfig | undefined
+    useAdapter(async (config) => {
+      seen = config
+      return ok(config)
+    })
+    await api.get('/user/me')
+    expect(seen?.headers.Authorization).toBe('Bearer sess')
+  })
+
   it('sends no Authorization header without a token', async () => {
     let seen: InternalAxiosRequestConfig | undefined
     useAdapter(async (config) => {
@@ -72,6 +84,7 @@ describe('api client', () => {
 
   it('on 401 clears auth, removes the token and redirects to login', async () => {
     localStorage.setItem('token', 'abc')
+    sessionStorage.setItem('token', 'abc')
     const auth = useAuthStore()
     auth.setUser({ id: 1, email: 'a@b.com', username: 'a' })
     useAdapter((config) => fail(config, 401))
@@ -80,6 +93,7 @@ describe('api client', () => {
 
     expect(auth.user).toBeNull()
     expect(localStorage.getItem('token')).toBeNull()
+    expect(sessionStorage.getItem('token')).toBeNull()
     expect(routerMock.push).toHaveBeenCalledWith('/login')
   })
 

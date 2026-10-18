@@ -90,11 +90,13 @@ describe('SettingsView', () => {
   describe('logout', () => {
     it('removes the token and signs out on the server', async () => {
       localStorage.setItem('token', 't')
+      sessionStorage.setItem('token', 's')
       apiMock.post.mockResolvedValue({})
       const w = await mountSettings()
       await w.find('#btn-signout').trigger('click')
       await flushPromises()
       expect(localStorage.getItem('token')).toBeNull()
+      expect(sessionStorage.getItem('token')).toBeNull()
       expect(apiMock.post).toHaveBeenCalledWith('/auth/signout')
     })
 

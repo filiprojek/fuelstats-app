@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import axios from 'axios'
 import IconLabelButton from '@/components/IconLabelButton.vue'
 import TextInput from '@/components/TextInput.vue'
@@ -8,6 +8,7 @@ import AppDialog from '@/components/AppDialog.vue'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/lib/api'
 import { fetchProviders, oidcErrorMessage, parseAuthHash, providerStartUrl, type OidcProvider } from '@/lib/oidc'
+import { getRememberPreference, setRememberPreference, setToken } from '@/lib/session'
 
 const route = useRoute()
 const router = useRouter()
@@ -19,6 +20,8 @@ const loginData = reactive({
 })
 
 const providers = ref<OidcProvider[]>([])
+const remember = ref(getRememberPreference())
+watch(remember, setRememberPreference)
 
 type DialogStyle = 'success' | 'danger' | 'warning' | 'info'
 
@@ -64,10 +67,11 @@ async function login() {
     const res = await api.post('/auth/signin', {
       email: loginData.email,
       password: loginData.password,
+      remember: remember.value,
     })
 
     if (res.data && res.data.token) {
-      localStorage.setItem('token', res.data.token)
+      setToken(res.data.token, typeof res.data.remember === 'boolean' ? res.data.remember : remember.value)
     }
 
     await loadUserIntoStore()
@@ -118,10 +122,15 @@ async function signup() {
     <TextInput v-model="loginData.email" id="email" type="email" placeholder="Email" />
     <TextInput v-model="loginData.password" id="password" type="password" placeholder="Password" />
 
+    <label class="remember" for="remember-me">
+      <input id="remember-me" v-model="remember" type="checkbox" />
+      <span>Remember me</span>
+    </label>
+
     <IconLabelButton type="submit" id="btn-login" label="Log In" icon="login" inline elevated />
     <div v-if="providers.length" class="sso">
       <span class="sso-divider">or</span>
-      <a v-for="p in providers" :key="p.id" class="sso-button" :href="providerStartUrl(p.id)">
+      <a v-for="p in providers" :key="p.id" class="sso-button" :href="providerStartUrl(p.id, { remember })">
         <span class="material-symbols-outlined">key</span>
         <span class="sso-label">Continue with {{ p.name }}</span>
       </a>
@@ -140,7 +149,7 @@ async function signup() {
     <IconLabelButton type="submit" id="btn-signup" label="Sign Up" icon="person_add" inline elevated />
     <div v-if="providers.length" class="sso">
       <span class="sso-divider">or</span>
-      <a v-for="p in providers" :key="p.id" class="sso-button" :href="providerStartUrl(p.id)">
+      <a v-for="p in providers" :key="p.id" class="sso-button" :href="providerStartUrl(p.id, { remember })">
         <span class="material-symbols-outlined">key</span>
         <span class="sso-label">Continue with {{ p.name }}</span>
       </a>
@@ -176,6 +185,25 @@ form {
   :deep(.text-input input) {
     width: 100%;
     height: 2.5rem;
+  }
+}
+
+.remember {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  user-select: none;
+
+  input {
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    accent-color: var(--color-success);
+    cursor: pointer;
   }
 }
 

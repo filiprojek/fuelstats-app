@@ -4,26 +4,27 @@ import { useRoute, useRouter } from 'vue-router'
 import api from '@/lib/api'
 import { useAuthStore } from '@/stores/auth'
 import { parseAuthHash } from '@/lib/oidc'
+import { clearToken, setToken } from '@/lib/session'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 
 onMounted(async () => {
-  const { token, error } = parseAuthHash(route.hash)
+  const { token, error, remember } = parseAuthHash(route.hash)
 
   if (!token) {
     await router.replace({ path: '/login', hash: `#error=${error ?? 'sso_failed'}` })
     return
   }
 
-  localStorage.setItem('token', token)
+  setToken(token, remember === true)
   try {
     const res = await api.get('/user/me')
     auth.setUser(res.data)
     await router.replace('/')
   } catch {
-    localStorage.removeItem('token')
+    clearToken()
     auth.clear()
     await router.replace({ path: '/login', hash: '#error=sso_failed' })
   }

@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
+import { clearToken, getToken } from '@/lib/session'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API,
@@ -8,7 +9,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
+    const token = getToken()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -27,7 +28,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !isAuthEndpoint) {
       const auth = useAuthStore()
       auth.clear()
-      localStorage.removeItem('token')
+      clearToken()
 
       // only leave protected pages; public pages (login, signup, SSO callback) and the
       // initial session check before the first navigation are handled by the router guard

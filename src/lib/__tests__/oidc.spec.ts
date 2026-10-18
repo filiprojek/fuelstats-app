@@ -34,7 +34,12 @@ describe('oidc helpers', () => {
     })
 
     it('appends an encoded link token', () => {
-      expect(providerStartUrl('authelia', 'a.b+c')).toBe('http://api.test/api/v1/auth/oidc/authelia/start?link=a.b%2Bc')
+      expect(providerStartUrl('authelia', { linkToken: 'a.b+c' })).toBe('http://api.test/api/v1/auth/oidc/authelia/start?link=a.b%2Bc')
+    })
+
+    it('passes the remember me choice', () => {
+      expect(providerStartUrl('authelia', { remember: true })).toBe('http://api.test/api/v1/auth/oidc/authelia/start?remember=1')
+      expect(providerStartUrl('authelia', { remember: false })).toBe('http://api.test/api/v1/auth/oidc/authelia/start?remember=0')
     })
   })
 
@@ -43,6 +48,11 @@ describe('oidc helpers', () => {
       expect(parseAuthHash('#token=abc.def')).toEqual({ token: 'abc.def' })
       expect(parseAuthHash('#error=invalid_state')).toEqual({ error: 'invalid_state' })
       expect(parseAuthHash('#linked=authelia')).toEqual({ linked: 'authelia' })
+    })
+
+    it('reads the remember flag', () => {
+      expect(parseAuthHash('#token=abc&remember=1')).toEqual({ token: 'abc', remember: true })
+      expect(parseAuthHash('#token=abc&remember=0')).toEqual({ token: 'abc' })
     })
 
     it('returns an empty object for an empty hash', () => {

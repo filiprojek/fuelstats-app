@@ -4,6 +4,8 @@ import { defineComponent, h } from 'vue'
 
 const apiMock = vi.hoisted(() => ({ get: vi.fn() }))
 vi.mock('@/lib/api', () => ({ default: apiMock }))
+const sessionMock = vi.hoisted(() => ({ refreshSession: vi.fn() }))
+vi.mock('@/lib/session', () => sessionMock)
 vi.mock('@/views/HomeView.vue', () => ({ default: defineComponent({ render: () => h('div', 'home') }) }))
 
 async function freshRouter() {
@@ -16,6 +18,7 @@ describe('router auth guard', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     apiMock.get.mockReset()
+    sessionMock.refreshSession.mockReset().mockResolvedValue(false)
   })
 
   it('redirects to /login when not authenticated', async () => {
@@ -40,6 +43,22 @@ describe('router auth guard', () => {
     await router.push('/login')
     await router.push('/')
     expect(apiMock.get).toHaveBeenCalledTimes(1)
+  })
+
+  it('renews the session on navigation while signed in', async () => {
+    apiMock.get.mockResolvedValue({ data: { id: 1, email: 'a@b.com', username: 'a' } })
+    const router = await freshRouter()
+    await router.push('/')
+    expect(sessionMock.refreshSession).toHaveBeenCalledTimes(1)
+    await router.push('/login')
+    expect(sessionMock.refreshSession).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not try to renew without a session', async () => {
+    apiMock.get.mockRejectedValue(new Error('401'))
+    const router = await freshRouter()
+    await router.push('/signup')
+    expect(sessionMock.refreshSession).not.toHaveBeenCalled()
   })
 
   it('lets anonymous users open public routes', async () => {

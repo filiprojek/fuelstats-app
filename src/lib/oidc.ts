@@ -9,6 +9,7 @@ export type AuthHash = {
   token?: string
   error?: string
   linked?: string
+  remember?: boolean
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -35,13 +36,17 @@ export async function fetchProviders(): Promise<OidcProvider[]> {
 }
 
 /** Server endpoint that starts the provider sign-in (needs a full page navigation) */
-export function providerStartUrl(providerId: string, linkToken?: string): string {
+export function providerStartUrl(providerId: string, options: { linkToken?: string; remember?: boolean } = {}): string {
   const base = String(import.meta.env.VITE_API ?? '').replace(/\/+$/, '')
   const url = `${base}/auth/oidc/${encodeURIComponent(providerId)}/start`
-  return linkToken ? `${url}?link=${encodeURIComponent(linkToken)}` : url
+  const params = new URLSearchParams()
+  if (options.linkToken) params.set('link', options.linkToken)
+  if (options.remember !== undefined) params.set('remember', options.remember ? '1' : '0')
+  const query = params.toString()
+  return query ? `${url}?${query}` : url
 }
 
-/** Parse `#token=…`, `#error=…` or `#linked=…` passed back by the server */
+/** Parse `#token=…[&remember=1]`, `#error=…` or `#linked=…` passed back by the server */
 export function parseAuthHash(hash: string): AuthHash {
   const params = new URLSearchParams(hash.replace(/^#/, ''))
   const result: AuthHash = {}
@@ -49,6 +54,7 @@ export function parseAuthHash(hash: string): AuthHash {
     const value = params.get(key)
     if (value) result[key] = value
   }
+  if (params.get('remember') === '1') result.remember = true
   return result
 }
 

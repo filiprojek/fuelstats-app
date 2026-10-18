@@ -28,6 +28,7 @@ describe('LoginSignupView', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     localStorage.clear()
+    sessionStorage.clear()
     apiMock.get.mockReset()
     apiMock.post.mockReset()
     apiMock.get.mockImplementation(async (url: string) => {
@@ -50,7 +51,7 @@ describe('LoginSignupView', () => {
     })
 
     it('signs in, stores the token, loads the user and navigates home', async () => {
-      apiMock.post.mockResolvedValue({ data: { token: 'jwt-token' } })
+      apiMock.post.mockResolvedValue({ data: { token: 'jwt-token', remember: true } })
       const { wrapper, router } = await mountAt('/login')
 
       await wrapper.find('#email').setValue('a@b.com')
@@ -58,7 +59,7 @@ describe('LoginSignupView', () => {
       await wrapper.find('form').trigger('submit')
       await flushPromises()
 
-      expect(apiMock.post).toHaveBeenCalledWith('/auth/signin', { email: 'a@b.com', password: 'secret' })
+      expect(apiMock.post).toHaveBeenCalledWith('/auth/signin', { email: 'a@b.com', password: 'secret', remember: true })
       expect(localStorage.getItem('token')).toBe('jwt-token')
       expect(useAuthStore().user).toEqual({ id: 1, email: 'a@b.com', username: 'a' })
       expect(wrapper.text()).toContain("You're logged in")
@@ -66,6 +67,43 @@ describe('LoginSignupView', () => {
       vi.advanceTimersByTime(600)
       await flushPromises()
       expect(router.currentRoute.value.path).toBe('/')
+    })
+
+    it('has remember me checked by default', async () => {
+      const { wrapper } = await mountAt('/login')
+      const box = wrapper.find<HTMLInputElement>('#remember-me')
+      expect(box.exists()).toBe(true)
+      expect(box.element.checked).toBe(true)
+    })
+
+    it('keeps the session only for the browser session without remember me', async () => {
+      apiMock.post.mockResolvedValue({ data: { token: 'jwt-token', remember: false } })
+      const { wrapper } = await mountAt('/login')
+
+      await wrapper.find('#remember-me').setValue(false)
+      await wrapper.find('form').trigger('submit')
+      await flushPromises()
+
+      expect(apiMock.post).toHaveBeenCalledWith('/auth/signin', { email: '', password: '', remember: false })
+      expect(sessionStorage.getItem('token')).toBe('jwt-token')
+      expect(localStorage.getItem('token')).toBeNull()
+    })
+
+    it('remembers the checkbox choice for the next visit', async () => {
+      const first = await mountAt('/login')
+      await first.wrapper.find('#remember-me').setValue(false)
+      first.wrapper.unmount()
+
+      const { wrapper } = await mountAt('/login')
+      expect(wrapper.find<HTMLInputElement>('#remember-me').element.checked).toBe(false)
+    })
+
+    it('falls back to the checkbox when the server does not report remember', async () => {
+      apiMock.post.mockResolvedValue({ data: { token: 'jwt-token' } })
+      const { wrapper } = await mountAt('/login')
+      await wrapper.find('form').trigger('submit')
+      await flushPromises()
+      expect(localStorage.getItem('token')).toBe('jwt-token')
     })
 
     it('shows the server error message on failure', async () => {
@@ -129,7 +167,13 @@ describe('LoginSignupView', () => {
       const { wrapper } = await mountAt(path)
       const links = wrapper.findAll('a.sso-button')
       expect(links.map((l) => l.find('.sso-label').text())).toEqual(['Continue with Authelia', 'Continue with Google'])
-      expect(links[0]!.attributes('href')).toBe('http://api.test/api/v1/auth/oidc/authelia/start')
+      expect(links[0]!.attributes('href')).toBe('http://api.test/api/v1/auth/oidc/authelia/start?remember=1')
+    })
+
+    it('passes the remember me choice to provider sign-in', async () => {
+      const { wrapper } = await mountAt('/login')
+      await wrapper.find('#remember-me').setValue(false)
+      expect(wrapper.find('a.sso-button').attributes('href')).toBe('http://api.test/api/v1/auth/oidc/authelia/start?remember=0')
     })
 
     it('hides the SSO block when no providers are configured', async () => {

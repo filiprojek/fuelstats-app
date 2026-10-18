@@ -22,17 +22,25 @@ async function mountWithHash(hash: string) {
 describe('AuthCallbackView', () => {
   beforeEach(() => {
     localStorage.clear()
+    sessionStorage.clear()
     apiMock.get.mockReset()
   })
 
-  it('stores the token, loads the user and goes home', async () => {
+  it('stores a remembered token, loads the user and goes home', async () => {
     apiMock.get.mockResolvedValue({ data: { id: 'u1', email: 'a@b.com', username: 'a' } })
-    const { router } = await mountWithHash('#token=jwt123')
+    const { router } = await mountWithHash('#token=jwt123&remember=1')
 
     expect(localStorage.getItem('token')).toBe('jwt123')
     expect(apiMock.get).toHaveBeenCalledWith('/user/me')
     expect(useAuthStore().user).toMatchObject({ id: 'u1' })
     expect(router.currentRoute.value.fullPath).toBe('/')
+  })
+
+  it('keeps a session that is not remembered in sessionStorage', async () => {
+    apiMock.get.mockResolvedValue({ data: { id: 'u1', email: 'a@b.com', username: 'a' } })
+    await mountWithHash('#token=jwt123')
+    expect(sessionStorage.getItem('token')).toBe('jwt123')
+    expect(localStorage.getItem('token')).toBeNull()
   })
 
   it('sends errors to the login page', async () => {
@@ -51,6 +59,7 @@ describe('AuthCallbackView', () => {
     apiMock.get.mockRejectedValue(new Error('401'))
     const { router } = await mountWithHash('#token=bad')
     expect(localStorage.getItem('token')).toBeNull()
+    expect(sessionStorage.getItem('token')).toBeNull()
     expect(router.currentRoute.value.fullPath).toBe('/login#error=sso_failed')
   })
 
