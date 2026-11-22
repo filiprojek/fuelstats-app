@@ -17,6 +17,11 @@ export default defineConfig({
     vueDevTools(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // The SPA fallback must not swallow real server pages: the OIDC login/callback
+        // (/api/v1/auth/oidc/...) and photos opened directly (/uploads/...).
+        navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//],
+      },
       devOptions: {
         enabled: true
       },
