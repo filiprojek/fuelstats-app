@@ -36,6 +36,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/lib/api'
+import type { ServiceStatusItem } from '@/lib/serviceTracker'
 
 const props = defineProps<{
   vehicleId: string
@@ -43,7 +44,7 @@ const props = defineProps<{
 
 const router = useRouter()
 const isLoading = ref(false)
-const alerts = ref<any[]>([])
+const alerts = ref<ServiceStatusItem[]>([])
 const currentOdometer = ref(0)
 
 const activeAlerts = computed(() => {
@@ -64,7 +65,7 @@ async function fetchStatus() {
   }
 }
 
-function formatRemainingText(alert: any) {
+function formatRemainingText(alert: ServiceStatusItem) {
   const parts: string[] = []
 
   if (alert.intervalKm !== null && alert.remainingKm !== null) {
@@ -89,7 +90,7 @@ function formatRemainingText(alert: any) {
   return parts[0] || ''
 }
 
-function recordService(alert: any) {
+function recordService(alert: ServiceStatusItem) {
   const today = new Date().toISOString().split('T')[0]
   router.push({
     path: '/add/service',

@@ -94,13 +94,13 @@
 
         <form v-else @submit.prevent="saveServicePlans">
           <div class="plans-list">
-            <div v-for="task in serviceTasksList" :key="task._id || task.id" class="plan-row">
+            <div v-for="task in serviceTasksList" :key="serviceTaskKey(task)" class="plan-row">
               <span class="task-name">{{ task.name }}</span>
-              <div class="inputs-grp" v-if="vehicleIntervals[task._id || task.id]">
+              <div class="inputs-grp" v-if="vehicleIntervals[serviceTaskKey(task)]">
                 <div class="input-wrp">
                   <input
                     type="number"
-                    v-model="vehicleIntervals[task._id || task.id].intervalKm"
+                    v-model="vehicleIntervals[serviceTaskKey(task)]!.intervalKm"
                     placeholder="None"
                     min="0"
                   />
@@ -109,7 +109,7 @@
                 <div class="input-wrp">
                   <input
                     type="number"
-                    v-model="vehicleIntervals[task._id || task.id].intervalMonths"
+                    v-model="vehicleIntervals[serviceTaskKey(task)]!.intervalMonths"
                     placeholder="None"
                     min="0"
                   />
@@ -119,7 +119,7 @@
                   type="button"
                   class="btn-clear-row"
                   title="Clear interval"
-                  @click="clearPlan(task._id || task.id)"
+                  @click="clearPlan(serviceTaskKey(task))"
                 >
                   <span class="material-symbols-outlined">clear</span>
                 </button>
@@ -194,6 +194,7 @@ import IconLabelButton from '@/components/IconLabelButton.vue'
 import TextInput from '@/components/TextInput.vue'
 import AppDialog from '@/components/AppDialog.vue'
 import { FUEL_TYPES } from '@/lib/constants'
+import { type IntervalInputs, type ServiceTask, serviceTaskKey } from '@/lib/serviceTracker'
 
 // Vehicle Interface
 type Vehicle = {
@@ -303,8 +304,8 @@ const isServicePlansOpen = ref(false)
 const isLoadingPlans = ref(false)
 const isSavingPlans = ref(false)
 const selectedVehicleForPlans = ref<Vehicle | null>(null)
-const serviceTasksList = ref<any[]>([])
-const vehicleIntervals = ref<any>({})
+const serviceTasksList = ref<ServiceTask[]>([])
+const vehicleIntervals = ref<Record<string, IntervalInputs>>({})
 
 const isAddingCustomTask = ref(false)
 const customTaskName = ref('')
@@ -318,9 +319,9 @@ async function addCustomServiceTask() {
   try {
     const res = await api.post('/vehicles/service-tasks', { name })
     const task = res.data
-    const taskId = task._id || task.id
+    const taskId = serviceTaskKey(task)
 
-    if (!serviceTasksList.value.some((t) => (t._id || t.id) === taskId)) {
+    if (!serviceTasksList.value.some((t) => serviceTaskKey(t) === taskId)) {
       serviceTasksList.value.push(task)
     }
 
@@ -360,9 +361,9 @@ async function openServicePlans(vehicle: Vehicle) {
     serviceTasksList.value = tasksRes.data
 
     // Initialize intervals state
-    const intervalsMap: Record<string, { intervalKm: string; intervalMonths: string }> = {}
+    const intervalsMap: Record<string, IntervalInputs> = {}
     for (const task of tasksRes.data) {
-      const taskId = task._id || task.id
+      const taskId = serviceTaskKey(task)
       intervalsMap[taskId] = { intervalKm: '', intervalMonths: '' }
     }
 
@@ -400,7 +401,7 @@ async function saveServicePlans() {
   if (!selectedVehicleForPlans.value) return
   isSavingPlans.value = true
   try {
-    const payload = Object.entries(vehicleIntervals.value as Record<string, any>).map(([taskId, val]) => ({
+    const payload = Object.entries(vehicleIntervals.value).map(([taskId, val]) => ({
       serviceTaskId: taskId,
       intervalKm: val.intervalKm ? Number(val.intervalKm) : null,
       intervalMonths: val.intervalMonths ? Number(val.intervalMonths) : null,

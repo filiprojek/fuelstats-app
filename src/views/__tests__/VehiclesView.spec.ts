@@ -219,6 +219,19 @@ describe('VehiclesView', () => {
       expect(toast(w)).toContain('Service plans updated successfully')
     })
 
+    it('saves an edited km interval of a task identified by id', async () => {
+      apiMock.post.mockResolvedValue({})
+      const w = await openPlans()
+      await w.findAll('.plan-row')[1]!.findAll('input')[0]!.setValue('30000')
+      await w.find('.service-plans-modal form').trigger('submit')
+      await flushPromises()
+      expect(apiMock.post.mock.calls[0]![1].intervals[1]).toEqual({
+        serviceTaskId: 't2',
+        intervalKm: 30000,
+        intervalMonths: null,
+      })
+    })
+
     it('clears a row', async () => {
       apiMock.post.mockResolvedValue({})
       const w = await openPlans()

@@ -28,7 +28,9 @@
             <h4 class="service-name">{{ item.serviceTaskName }}</h4>
             <p class="service-due">
               Target:
-              <span class="due-val" v-if="item.intervalKm">{{ item.nextServiceOdometer.toLocaleString() }} km</span>
+              <span class="due-val" v-if="item.intervalKm && item.nextServiceOdometer !== null"
+                >{{ item.nextServiceOdometer.toLocaleString() }} km</span
+              >
               <span v-if="item.intervalKm && item.intervalMonths"> or </span>
               <span class="due-val" v-if="item.intervalMonths">{{ formatDate(item.nextServiceDate) }}</span>
             </p>
@@ -65,6 +67,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/lib/api'
+import type { ServiceStatusItem } from '@/lib/serviceTracker'
 
 const props = defineProps<{
   vehicleId: string
@@ -72,7 +75,7 @@ const props = defineProps<{
 
 const router = useRouter()
 const isLoading = ref(false)
-const services = ref<any[]>([])
+const services = ref<ServiceStatusItem[]>([])
 const currentOdometer = ref(0)
 
 const sortedServices = computed(() => {
@@ -110,7 +113,7 @@ function formatDate(dateStr: string | null) {
   return d.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
-function getProgressPercent(item: any): number {
+function getProgressPercent(item: ServiceStatusItem): number {
   let percentKm = 0
   let percentTime = 0
 
@@ -130,13 +133,13 @@ function getProgressPercent(item: any): number {
   return Math.min(100, Math.max(0, finalPercent))
 }
 
-function formatStatusText(item: any) {
+function formatStatusText(item: ServiceStatusItem) {
   if (item.status === 'OVERDUE') return 'Overdue'
   if (item.status === 'WARNING') return 'Due soon'
   return 'OK'
 }
 
-function formatCountdownText(item: any) {
+function formatCountdownText(item: ServiceStatusItem) {
   const parts: string[] = []
 
   if (item.intervalKm !== null && item.remainingKm !== null) {
@@ -161,7 +164,7 @@ function formatCountdownText(item: any) {
   return parts[0] || ''
 }
 
-function recordService(item: any) {
+function recordService(item: ServiceStatusItem) {
   const today = new Date().toISOString().split('T')[0]
   router.push({
     path: '/add/service',

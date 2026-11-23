@@ -159,6 +159,7 @@ import api from '@/lib/api'
 import { compressImage } from '@/lib/images'
 import { useVehicles } from '@/composables/useVehicles'
 import { FUEL_TYPES, SERVICE_TYPES } from '@/lib/constants'
+import type { ServiceTask } from '@/lib/serviceTracker'
 
 const router = useRouter()
 const route = useRoute()
@@ -200,7 +201,7 @@ const options: SegmentOption<Mode>[] = [
 ]
 
 const uploadedPhotos = ref<string[]>([])
-const serviceTasks = ref<any[]>([])
+const serviceTasks = ref<ServiceTask[]>([])
 
 async function handlePhotoUpload(event: Event) {
   const files = Array.from((event.target as HTMLInputElement).files ?? [])

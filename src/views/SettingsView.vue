@@ -286,7 +286,6 @@ const defaultVehicle = computed(() => {
 
 // File inputs refs
 const refuelsInput = ref<HTMLInputElement | null>(null)
-const servicesInput = ref<HTMLInputElement | null>(null)
 
 // Toast Dialog state
 type DialogStyle = 'success' | 'danger' | 'warning' | 'info'
@@ -334,10 +333,6 @@ async function logout() {
 // Trigger file dialogs
 function triggerRefuelsInput() {
   refuelsInput.value?.click()
-}
-
-function triggerServicesInput() {
-  servicesInput.value?.click()
 }
 
 // Refuels Export
