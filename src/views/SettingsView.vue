@@ -370,10 +370,11 @@ async function importRefuels(event: Event) {
     const csvText = e.target?.result as string
     try {
       const fallbackQuery = defaultVehicle.value ? `?vehicleId=${defaultVehicle.value.id}` : ''
-      await api.post(`/refuels/import${fallbackQuery}`, csvText, {
+      const res = await api.post(`/refuels/import${fallbackQuery}`, csvText, {
         headers: { 'Content-Type': 'text/csv' },
       })
-      showDialog('success', 'Refuel logs imported successfully', '')
+      // the server message says how many rows were imported and how many were skipped as already present
+      showDialog('success', 'Refuel logs imported successfully', res.data?.message ?? '')
       target.value = ''
     } catch (err) {
       showDialog('danger', 'Import failed', getErrorMessage(err))
@@ -444,10 +445,11 @@ async function handleImportSubmit() {
   reader.onload = async (e) => {
     const csvText = e.target?.result as string
     try {
-      await api.post(`/services/import?vehicleId=${importVehicleId.value}`, csvText, {
+      // targetVehicleId puts every row into the selected vehicle, even rows of an export that name another vehicle
+      const res = await api.post(`/services/import?targetVehicleId=${importVehicleId.value}`, csvText, {
         headers: { 'Content-Type': 'text/csv' },
       })
-      showDialog('success', 'Service records imported successfully', '')
+      showDialog('success', 'Service records imported successfully', res.data?.message ?? '')
       isImporting.value = false
       closeImportModal()
     } catch (err) {

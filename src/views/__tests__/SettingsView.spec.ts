@@ -164,6 +164,16 @@ describe('SettingsView', () => {
       expect(toast(w)).toContain('Refuel logs imported successfully')
     })
 
+    it('shows how many rows the server imported and skipped', async () => {
+      apiMock.post.mockResolvedValue({
+        data: { message: 'Successfully imported 1 refuel records (2 skipped as already present)' },
+      })
+      const w = await mountSettings()
+      await selectFile(w)
+      expect(toast(w)).toContain('Refuel logs imported successfully')
+      expect(toast(w)).toContain('Successfully imported 1 refuel records (2 skipped as already present)')
+    })
+
     it('reports import failures', async () => {
       apiMock.post.mockRejectedValue(axiosError(400, { error: 'bad csv' }))
       const w = await mountSettings()
@@ -200,8 +210,10 @@ describe('SettingsView', () => {
       expect(w.find('.file-prompt').exists()).toBe(true)
     })
 
-    it('shows the chosen file with its size and imports into the selected vehicle', async () => {
-      apiMock.post.mockResolvedValue({})
+    it('shows the chosen file with its size and imports every row into the selected vehicle', async () => {
+      apiMock.post.mockResolvedValue({
+        data: { message: 'Successfully imported 0 service records (3 skipped as already present)' },
+      })
       const w = await openWizard()
       await w.find('#import_vehicle').setValue('v1')
       await chooseFile(w)
@@ -209,7 +221,20 @@ describe('SettingsView', () => {
       expect(w.find('.file-size').text()).toBe('2 KB')
       await w.find('.import-modal form').trigger('submit')
       await flushPromises()
-      expect(apiMock.post).toHaveBeenCalledWith('/services/import?vehicleId=v1', 'a,b\n1,2', { headers: { 'Content-Type': 'text/csv' } })
+      expect(apiMock.post).toHaveBeenCalledWith('/services/import?targetVehicleId=v1', 'a,b\n1,2', {
+        headers: { 'Content-Type': 'text/csv' },
+      })
+      expect(toast(w)).toContain('Service records imported successfully')
+      expect(toast(w)).toContain('Successfully imported 0 service records (3 skipped as already present)')
+      expect(w.find('.import-modal').exists()).toBe(false)
+    })
+
+    it('still reports success and closes when the server sends no message', async () => {
+      apiMock.post.mockResolvedValue({})
+      const w = await openWizard()
+      await chooseFile(w)
+      await w.find('.import-modal form').trigger('submit')
+      await flushPromises()
       expect(toast(w)).toContain('Service records imported successfully')
       expect(w.find('.import-modal').exists()).toBe(false)
     })
