@@ -66,7 +66,7 @@ async function fetchStatus() {
 
 function formatRemainingText(alert: any) {
   const parts: string[] = []
-  
+
   if (alert.intervalKm !== null && alert.remainingKm !== null) {
     if (alert.remainingKm < 0) {
       parts.push(`overdue by ${Math.abs(alert.remainingKm).toLocaleString()} km`)
@@ -129,8 +129,12 @@ onMounted(fetchStatus)
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .service-alerts-container {
@@ -147,7 +151,10 @@ onMounted(fetchStatus)
   padding: 0.85rem 1.25rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-default);
-  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    border-color 150ms ease;
   background-color: var(--bg-secondary);
   gap: var(--space-md);
 
@@ -164,7 +171,7 @@ onMounted(fetchStatus)
     .alert-icon {
       color: #f85149;
     }
-    
+
     .alert-title {
       color: #ff7b72;
     }
@@ -228,7 +235,9 @@ onMounted(fetchStatus)
     font-size: 0.825rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 150ms, border-color 150ms;
+    transition:
+      background-color 150ms,
+      border-color 150ms;
 
     &:hover {
       background-color: var(--border-default);

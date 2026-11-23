@@ -12,8 +12,24 @@ const imagesMock = vi.hoisted(() => ({ compressImage: vi.fn(async (file: File) =
 vi.mock('@/lib/images', () => imagesMock)
 
 const vehicles = [
-  { id: 'v1', name: 'Octavia', registrationPlate: 'A', fuelType: 'diesel', isDefault: true, createdAt: '', userId: 'u' },
-  { id: 'v2', name: 'Fabia', registrationPlate: 'B', fuelType: 'gasoline95', isDefault: false, createdAt: '', userId: 'u' },
+  {
+    id: 'v1',
+    name: 'Octavia',
+    registrationPlate: 'A',
+    fuelType: 'diesel',
+    isDefault: true,
+    createdAt: '',
+    userId: 'u',
+  },
+  {
+    id: 'v2',
+    name: 'Fabia',
+    registrationPlate: 'B',
+    fuelType: 'gasoline95',
+    isDefault: false,
+    createdAt: '',
+    userId: 'u',
+  },
 ]
 
 async function mountAt(path: string, vehicleList: unknown[] = vehicles, odometerList: unknown[] | Error = []) {
@@ -92,7 +108,9 @@ describe('AddView', () => {
     })
 
     it('uses query parameters from service alerts', async () => {
-      const { wrapper } = await mountAt('/add/service?vehicleId=v2&serviceType=Timing%20belt&odometer=1234&date=2026-01-02')
+      const { wrapper } = await mountAt(
+        '/add/service?vehicleId=v2&serviceType=Timing%20belt&odometer=1234&date=2026-01-02',
+      )
       expect(value(wrapper, '#vehicle')).toBe('v2')
       expect(value(wrapper, '#service_type')).toBe('Timing belt')
       expect(value(wrapper, '#mileage')).toBe('1234')
@@ -170,7 +188,10 @@ describe('AddView', () => {
       await wrapper.find('#mileage').setValue('15000')
       await wrapper.find('form').trigger('submit')
       await flushPromises()
-      expect(apiMock.post).toHaveBeenCalledWith('/services', expect.objectContaining({ vehicleId: 'v1', serviceType: 'engine-oil', cost: 2500, mileage: 15000, photos: [] }))
+      expect(apiMock.post).toHaveBeenCalledWith(
+        '/services',
+        expect.objectContaining({ vehicleId: 'v1', serviceType: 'engine-oil', cost: 2500, mileage: 15000, photos: [] }),
+      )
     })
 
     it('creates an odometer record and goes to history', async () => {
@@ -180,7 +201,10 @@ describe('AddView', () => {
       await wrapper.find('#odometer_note').setValue('trip')
       await wrapper.find('form').trigger('submit')
       await flushPromises()
-      expect(apiMock.post).toHaveBeenCalledWith('/odometer', expect.objectContaining({ vehicleId: 'v1', mileage: 20000, note: 'trip' }))
+      expect(apiMock.post).toHaveBeenCalledWith(
+        '/odometer',
+        expect.objectContaining({ vehicleId: 'v1', mileage: 20000, note: 'trip' }),
+      )
       vi.advanceTimersByTime(1500)
       await flushPromises()
       expect(router.currentRoute.value.path).toBe('/history')
@@ -195,7 +219,13 @@ describe('AddView', () => {
       await wrapper.find('#vehicle_fuel_type').setValue('gasoline98')
       await wrapper.find('form').trigger('submit')
       await flushPromises()
-      expect(apiMock.post).toHaveBeenCalledWith('/vehicles', { name: 'Golf', registrationPlate: '1AB 2345', fuelType: 'gasoline98', vin: 'WVW123', note: null })
+      expect(apiMock.post).toHaveBeenCalledWith('/vehicles', {
+        name: 'Golf',
+        registrationPlate: '1AB 2345',
+        fuelType: 'gasoline98',
+        vin: 'WVW123',
+        note: null,
+      })
       vi.advanceTimersByTime(1500)
       await flushPromises()
       expect(router.currentRoute.value.path).toBe('/vehicles')
@@ -217,7 +247,14 @@ describe('AddView', () => {
   })
 
   describe('start odometer record', () => {
-    const startOf = (vehicleId: string) => ({ id: 'o-start', vehicleId, mileage: 5000, date: '2024-01-01', createdAt: '2024-01-01', isStart: true })
+    const startOf = (vehicleId: string) => ({
+      id: 'o-start',
+      vehicleId,
+      mileage: 5000,
+      date: '2024-01-01',
+      createdAt: '2024-01-01',
+      isStart: true,
+    })
 
     it('offers to mark the record as start of the odometer history', async () => {
       const { wrapper } = await mountAt('/add/odometer')
@@ -245,7 +282,10 @@ describe('AddView', () => {
     })
 
     it('hides the option when the selected vehicle already has a start record', async () => {
-      const { wrapper } = await mountAt('/add/odometer', vehicles, [startOf('v1'), { ...startOf('v2'), id: 'o2', isStart: false }])
+      const { wrapper } = await mountAt('/add/odometer', vehicles, [
+        startOf('v1'),
+        { ...startOf('v2'), id: 'o2', isStart: false },
+      ])
       expect(wrapper.find('#odometer_is_start').exists()).toBe(false)
 
       await wrapper.find('#vehicle').setValue('v2')
@@ -259,7 +299,10 @@ describe('AddView', () => {
       await wrapper.find('#vehicle').setValue('v2')
       await wrapper.find('form').trigger('submit')
       await flushPromises()
-      expect(apiMock.post).toHaveBeenCalledWith('/odometer', expect.objectContaining({ vehicleId: 'v2', isStart: false }))
+      expect(apiMock.post).toHaveBeenCalledWith(
+        '/odometer',
+        expect.objectContaining({ vehicleId: 'v2', isStart: false }),
+      )
     })
 
     it('still offers the option when odometer records cannot be loaded', async () => {
@@ -296,11 +339,16 @@ describe('AddView', () => {
       await wrapper.find('#mileage').setValue('1000')
       await wrapper.find('form').trigger('submit')
       await flushPromises()
-      expect(apiMock.post).toHaveBeenCalledWith('/services', expect.objectContaining({ photos: ['data:compressed/receipt.jpg'] }))
+      expect(apiMock.post).toHaveBeenCalledWith(
+        '/services',
+        expect.objectContaining({ photos: ['data:compressed/receipt.jpg'] }),
+      )
     })
 
     it('shows a server message when the upload is still too large', async () => {
-      apiMock.post.mockRejectedValue(axiosError(413, { message: 'Request too large (limit 25mb). Try fewer or smaller photos.' }))
+      apiMock.post.mockRejectedValue(
+        axiosError(413, { message: 'Request too large (limit 25mb). Try fewer or smaller photos.' }),
+      )
       const { wrapper } = await mountAt('/add/service?serviceType=engine-oil')
       await upload(wrapper, ['huge.jpg'])
       await wrapper.find('form').trigger('submit')

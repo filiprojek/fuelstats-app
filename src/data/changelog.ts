@@ -19,7 +19,10 @@ export const CHANGELOG_DATA: ReleaseLog[] = [
     title: 'Custom Service Tasks & Maintenance Plans',
     highlight: 'Patch release adding custom service task creation and dark glassmorphic interval plan controls.',
     changes: [
-      { type: 'feat', text: 'Custom Service Task Creator (add user-defined maintenance tasks with custom km/month intervals)' },
+      {
+        type: 'feat',
+        text: 'Custom Service Task Creator (add user-defined maintenance tasks with custom km/month intervals)',
+      },
       { type: 'feat', text: 'Inline interval reset/clear controls in Service Plans modal' },
       { type: 'style', text: 'Polished custom task form layout and pill input styling in Service Plans modal' },
     ],
@@ -30,7 +33,10 @@ export const CHANGELOG_DATA: ReleaseLog[] = [
     title: 'Standalone Odometer Logging & UX Enhancements',
     highlight: 'Minor release adding standalone mileage tracking, responsive picker controls, and version indicators.',
     changes: [
-      { type: 'feat', text: 'Standalone Odometer Reading form & history entry (log car mileage without refuel or service)' },
+      {
+        type: 'feat',
+        text: 'Standalone Odometer Reading form & history entry (log car mileage without refuel or service)',
+      },
       { type: 'feat', text: 'Integrated Odometer entries into Service Maintenance Tracker calculations' },
       { type: 'feat', text: 'App and Server Version indicator section with live connection indicator in Settings' },
       { type: 'feat', text: 'Interactive Changelog release notes modal' },
@@ -44,12 +50,28 @@ export const CHANGELOG_DATA: ReleaseLog[] = [
     title: 'Vue 3 Web App Rewrite & Service Maintenance Tracker',
     highlight: 'Major release replacing the legacy Flutter mobile app with a full-stack Vue 3 PWA client.',
     changes: [
-      { type: 'feat', text: 'Service Maintenance Tracker with dynamic overdue warning alerts & status logic', commit: 'db160db' },
+      {
+        type: 'feat',
+        text: 'Service Maintenance Tracker with dynamic overdue warning alerts & status logic',
+        commit: 'db160db',
+      },
       { type: 'feat', text: 'Service Schedule Overview card on the dashboard with progress bars', commit: 'ec2c4e6' },
-      { type: 'feat', text: 'CSV import wizard modal with vehicle selector and drag-and-drop file upload', commit: '032c4f4' },
+      {
+        type: 'feat',
+        text: 'CSV import wizard modal with vehicle selector and drag-and-drop file upload',
+        commit: '032c4f4',
+      },
       { type: 'feat', text: 'Flexible Czech date & column parsing for service CSV imports' },
-      { type: 'feat', text: 'Progressive Web App (PWA) support with offline caching and manifest setup', commit: 'ed333e2' },
-      { type: 'feat', text: 'Refuel and Service Records history view with filters, sorting, and inline edit modals', commit: '6ba4158' },
+      {
+        type: 'feat',
+        text: 'Progressive Web App (PWA) support with offline caching and manifest setup',
+        commit: 'ed333e2',
+      },
+      {
+        type: 'feat',
+        text: 'Refuel and Service Records history view with filters, sorting, and inline edit modals',
+        commit: '6ba4158',
+      },
       { type: 'feat', text: 'Interactive charts for fuel prices and consumption trends', commit: '9a40647' },
       { type: 'feat', text: 'Support for photo uploads, custom vehicle VIN, and detailed notes', commit: '80d88e3' },
       { type: 'style', text: 'Modern dark glassmorphism design system with responsive desktop and mobile support' },

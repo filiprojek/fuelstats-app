@@ -6,7 +6,12 @@ import { makeRouter } from '@/test/utils'
 
 async function mountAt(path: string) {
   const router = makeRouter([
-    { path: '/hidden', name: 'hidden', meta: { hideNav: true, hideHeader: true }, component: { template: '<p>hidden</p>' } },
+    {
+      path: '/hidden',
+      name: 'hidden',
+      meta: { hideNav: true, hideHeader: true },
+      component: { template: '<p>hidden</p>' },
+    },
     { path: '/titled', name: 'titled', meta: { title: 'Vehicles' }, component: { template: '<p>titled</p>' } },
   ])
   await router.push(path)

@@ -95,7 +95,11 @@ const activeVehicleReadings = computed(() => {
   const odometers = ofVehicle(odometerRecords.value)
   const vehicleRefuels = ofVehicle(refuels.value)
   const startRecord = odometers.find((r) => r.isStart)
-  const readings = toReadings([...vehicleRefuels, ...odometers.filter((r) => r !== startRecord), ...ofVehicle(serviceRecords.value)])
+  const readings = toReadings([
+    ...vehicleRefuels,
+    ...odometers.filter((r) => r !== startRecord),
+    ...ofVehicle(serviceRecords.value),
+  ])
 
   if (startRecord) {
     // added directly so a new car's 0 km start isn't dropped as an unknown reading

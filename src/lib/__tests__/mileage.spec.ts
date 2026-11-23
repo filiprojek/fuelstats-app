@@ -22,7 +22,12 @@ describe('toReadings', () => {
 
   it('orders readings at the same time by mileage', () => {
     const d = new Date(NOW).toISOString()
-    expect(toReadings([{ mileage: 20, date: d, createdAt: d }, { mileage: 10, date: d, createdAt: d }]).map((r) => r.mileage)).toEqual([10, 20])
+    expect(
+      toReadings([
+        { mileage: 20, date: d, createdAt: d },
+        { mileage: 10, date: d, createdAt: d },
+      ]).map((r) => r.mileage),
+    ).toEqual([10, 20])
   })
 })
 

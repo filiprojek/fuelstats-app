@@ -16,7 +16,8 @@ vi.mock('@/components/SignInMethods.vue', () => ({
     name: 'SignInMethods',
     emits: ['notify'],
     setup(_, { emit }) {
-      return () => h('button', { class: 'stub-notify', onClick: () => emit('notify', 'success', 'Authelia linked', 'desc') })
+      return () =>
+        h('button', { class: 'stub-notify', onClick: () => emit('notify', 'success', 'Authelia linked', 'desc') })
     },
   }),
 }))

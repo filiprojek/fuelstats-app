@@ -43,7 +43,10 @@ async function mountSettings() {
 
 const toast = (w: ReturnType<typeof mount>) => w.find('.app-dialog').text()
 const button = (w: ReturnType<typeof mount>, group: number, label: string) =>
-  w.findAll('.data-group')[group]!.findAll('button').find((b) => b.text().includes(label))!
+  w
+    .findAll('.data-group')
+    [group]!.findAll('button')
+    .find((b) => b.text().includes(label))!
 
 describe('SettingsView', () => {
   beforeEach(() => {
@@ -160,7 +163,9 @@ describe('SettingsView', () => {
       apiMock.post.mockResolvedValue({})
       const w = await mountSettings()
       await selectFile(w)
-      expect(apiMock.post).toHaveBeenCalledWith('/refuels/import?vehicleId=v2', 'a,b\n1,2', { headers: { 'Content-Type': 'text/csv' } })
+      expect(apiMock.post).toHaveBeenCalledWith('/refuels/import?vehicleId=v2', 'a,b\n1,2', {
+        headers: { 'Content-Type': 'text/csv' },
+      })
       expect(toast(w)).toContain('Refuel logs imported successfully')
     })
 

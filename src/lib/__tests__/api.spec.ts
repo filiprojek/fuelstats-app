@@ -3,7 +3,9 @@ import { setActivePinia, createPinia } from 'pinia'
 import type { InternalAxiosRequestConfig, AxiosResponse } from 'axios'
 
 const routerMock = vi.hoisted(() => ({
-  currentRoute: { value: { name: 'home' as string | undefined, meta: { requiresAuth: true } as Record<string, unknown> } },
+  currentRoute: {
+    value: { name: 'home' as string | undefined, meta: { requiresAuth: true } as Record<string, unknown> },
+  },
   push: vi.fn(),
 }))
 vi.mock('@/router', () => ({ default: routerMock }))

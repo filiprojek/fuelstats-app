@@ -34,12 +34,18 @@ describe('oidc helpers', () => {
     })
 
     it('appends an encoded link token', () => {
-      expect(providerStartUrl('authelia', { linkToken: 'a.b+c' })).toBe('http://api.test/api/v1/auth/oidc/authelia/start?link=a.b%2Bc')
+      expect(providerStartUrl('authelia', { linkToken: 'a.b+c' })).toBe(
+        'http://api.test/api/v1/auth/oidc/authelia/start?link=a.b%2Bc',
+      )
     })
 
     it('passes the remember me choice', () => {
-      expect(providerStartUrl('authelia', { remember: true })).toBe('http://api.test/api/v1/auth/oidc/authelia/start?remember=1')
-      expect(providerStartUrl('authelia', { remember: false })).toBe('http://api.test/api/v1/auth/oidc/authelia/start?remember=0')
+      expect(providerStartUrl('authelia', { remember: true })).toBe(
+        'http://api.test/api/v1/auth/oidc/authelia/start?remember=1',
+      )
+      expect(providerStartUrl('authelia', { remember: false })).toBe(
+        'http://api.test/api/v1/auth/oidc/authelia/start?remember=0',
+      )
     })
   })
 

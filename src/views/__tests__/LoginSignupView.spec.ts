@@ -59,7 +59,11 @@ describe('LoginSignupView', () => {
       await wrapper.find('form').trigger('submit')
       await flushPromises()
 
-      expect(apiMock.post).toHaveBeenCalledWith('/auth/signin', { email: 'a@b.com', password: 'secret', remember: true })
+      expect(apiMock.post).toHaveBeenCalledWith('/auth/signin', {
+        email: 'a@b.com',
+        password: 'secret',
+        remember: true,
+      })
       expect(localStorage.getItem('token')).toBe('jwt-token')
       expect(useAuthStore().user).toEqual({ id: 1, email: 'a@b.com', username: 'a' })
       expect(wrapper.text()).toContain("You're logged in")
@@ -137,7 +141,11 @@ describe('LoginSignupView', () => {
       await wrapper.find('form').trigger('submit')
       await flushPromises()
 
-      expect(apiMock.post).toHaveBeenCalledWith('/auth/signup', { username: 'bob', email: 'bob@example.com', password: 'secret' })
+      expect(apiMock.post).toHaveBeenCalledWith('/auth/signup', {
+        username: 'bob',
+        email: 'bob@example.com',
+        password: 'secret',
+      })
       expect(wrapper.text()).toContain('Account created')
 
       vi.advanceTimersByTime(1300)
@@ -173,7 +181,9 @@ describe('LoginSignupView', () => {
     it('passes the remember me choice to provider sign-in', async () => {
       const { wrapper } = await mountAt('/login')
       await wrapper.find('#remember-me').setValue(false)
-      expect(wrapper.find('a.sso-button').attributes('href')).toBe('http://api.test/api/v1/auth/oidc/authelia/start?remember=0')
+      expect(wrapper.find('a.sso-button').attributes('href')).toBe(
+        'http://api.test/api/v1/auth/oidc/authelia/start?remember=0',
+      )
     })
 
     it('hides the SSO block when no providers are configured', async () => {
@@ -189,4 +199,3 @@ describe('LoginSignupView', () => {
     })
   })
 })
-

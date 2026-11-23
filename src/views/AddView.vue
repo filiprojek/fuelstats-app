@@ -322,7 +322,7 @@ onMounted(async () => {
 
   // Pre-fill query parameters if present
   if (route.query.vehicleId) {
-    const found = vehicles.value.find(v => v.id === route.query.vehicleId)
+    const found = vehicles.value.find((v) => v.id === route.query.vehicleId)
     if (found) {
       formData.vehicleId = found.id
       formData.fuelType = found.fuelType

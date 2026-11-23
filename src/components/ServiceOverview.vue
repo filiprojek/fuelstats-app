@@ -33,7 +33,7 @@
               <span class="due-val" v-if="item.intervalMonths">{{ formatDate(item.nextServiceDate) }}</span>
             </p>
           </div>
-          
+
           <div class="item-badge-wrp">
             <span class="status-badge" :class="item.status.toLowerCase()">
               {{ formatStatusText(item) }}
@@ -156,9 +156,7 @@ function formatCountdownText(item: any) {
   }
 
   if (parts.length === 2) {
-    return item.remainingKm! < 0 || item.remainingDays! < 0
-      ? `${parts[0]} / ${parts[1]}`
-      : `${parts[0]} or ${parts[1]}`
+    return item.remainingKm! < 0 || item.remainingDays! < 0 ? `${parts[0]} / ${parts[1]}` : `${parts[0]} or ${parts[1]}`
   }
   return parts[0] || ''
 }
@@ -227,8 +225,12 @@ onMounted(fetchStatus)
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .overview-empty {

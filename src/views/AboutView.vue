@@ -61,9 +61,17 @@
               {{ item.type === 'refuel' ? 'local_gas_station' : item.type === 'odometer' ? 'speed' : 'build' }}
             </span>
             <span class="type-text">
-              {{ item.type === 'refuel' ? 'Refuel' : item.type === 'odometer' ? 'Odometer Log' : getServiceLabel(item.serviceType || '') }}
+              {{
+                item.type === 'refuel'
+                  ? 'Refuel'
+                  : item.type === 'odometer'
+                    ? 'Odometer Log'
+                    : getServiceLabel(item.serviceType || '')
+              }}
             </span>
-            <span v-if="item.isStart" class="start-badge" title="Kilometers driven are counted from this reading">Start</span>
+            <span v-if="item.isStart" class="start-badge" title="Kilometers driven are counted from this reading"
+              >Start</span
+            >
           </div>
           <span class="date">{{ formatDate(item.date) }}</span>
         </div>
@@ -660,7 +668,8 @@ async function saveRecord() {
 }
 
 async function confirmDelete(item: HistoryItem) {
-  const typeLabel = item.type === 'refuel' ? 'refuel record' : item.type === 'odometer' ? 'odometer record' : 'service record'
+  const typeLabel =
+    item.type === 'refuel' ? 'refuel record' : item.type === 'odometer' ? 'odometer record' : 'service record'
   const isConfirmed = window.confirm(`Are you sure you want to delete this ${typeLabel}?`)
   if (!isConfirmed) return
 

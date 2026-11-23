@@ -152,7 +152,7 @@
       <div class="edit-modal import-modal">
         <h3>Import Service Records</h3>
         <p class="modal-sub">Import records from a CSV file into a selected vehicle.</p>
-        
+
         <form @submit.prevent="handleImportSubmit">
           <label for="import_vehicle">1. Select Target Vehicle</label>
           <select id="import_vehicle" v-model="importVehicleId">
@@ -160,7 +160,7 @@
               {{ vehicle.name }} ({{ vehicle.registrationPlate.toUpperCase() }})
             </option>
           </select>
-          
+
           <label>2. Choose CSV File</label>
           <div class="file-drop-area" :class="{ 'has-file': !!importFile }">
             <span class="material-symbols-outlined file-icon">
@@ -440,7 +440,7 @@ function formatFileSize(bytes: number): string {
 async function handleImportSubmit() {
   if (!importFile.value || !importVehicleId.value) return
   isImporting.value = true
-  
+
   const reader = new FileReader()
   reader.onload = async (e) => {
     const csvText = e.target?.result as string
@@ -686,7 +686,9 @@ async function handleImportSubmit() {
   text-align: center;
   cursor: pointer;
   background-color: var(--bg-primary);
-  transition: border-color 150ms ease, background-color 150ms ease;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
   margin-top: var(--space-xs);
 
   &:hover {
@@ -710,14 +712,14 @@ async function handleImportSubmit() {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    
+
     .file-name {
       font-weight: 600;
       color: var(--text-primary);
       font-size: 0.9rem;
       word-break: break-all;
     }
-    
+
     .file-size {
       font-size: 0.75rem;
       color: var(--text-secondary);

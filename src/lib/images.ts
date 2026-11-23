@@ -26,7 +26,11 @@ function loadImage(src: string): Promise<HTMLImageElement> {
  * become viewable in every browser. Falls back to the original file when the
  * browser can't decode or re-encode it.
  */
-export async function compressImage(file: File, maxDimension = MAX_PHOTO_DIMENSION, quality = PHOTO_QUALITY): Promise<string> {
+export async function compressImage(
+  file: File,
+  maxDimension = MAX_PHOTO_DIMENSION,
+  quality = PHOTO_QUALITY,
+): Promise<string> {
   const url = URL.createObjectURL(file)
   try {
     const img = await loadImage(url)

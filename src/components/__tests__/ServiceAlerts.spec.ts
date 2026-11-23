@@ -7,10 +7,42 @@ const apiMock = vi.hoisted(() => ({ get: vi.fn() }))
 vi.mock('@/lib/api', () => ({ default: apiMock }))
 
 const status = [
-  { serviceTaskId: 't1', serviceTaskName: 'Engine oil', status: 'OVERDUE', intervalKm: 15000, remainingKm: -1200, intervalMonths: 12, remainingDays: -5 },
-  { serviceTaskId: 't2', serviceTaskName: 'Air filter', status: 'WARNING', intervalKm: 30000, remainingKm: 800, intervalMonths: null, remainingDays: null },
-  { serviceTaskId: 't3', serviceTaskName: 'Brakes', status: 'WARNING', intervalKm: null, remainingKm: null, intervalMonths: 24, remainingDays: 20 },
-  { serviceTaskId: 't4', serviceTaskName: 'Battery', status: 'OK', intervalKm: 1, remainingKm: 1, intervalMonths: null, remainingDays: null },
+  {
+    serviceTaskId: 't1',
+    serviceTaskName: 'Engine oil',
+    status: 'OVERDUE',
+    intervalKm: 15000,
+    remainingKm: -1200,
+    intervalMonths: 12,
+    remainingDays: -5,
+  },
+  {
+    serviceTaskId: 't2',
+    serviceTaskName: 'Air filter',
+    status: 'WARNING',
+    intervalKm: 30000,
+    remainingKm: 800,
+    intervalMonths: null,
+    remainingDays: null,
+  },
+  {
+    serviceTaskId: 't3',
+    serviceTaskName: 'Brakes',
+    status: 'WARNING',
+    intervalKm: null,
+    remainingKm: null,
+    intervalMonths: 24,
+    remainingDays: 20,
+  },
+  {
+    serviceTaskId: 't4',
+    serviceTaskName: 'Battery',
+    status: 'OK',
+    intervalKm: 1,
+    remainingKm: 1,
+    intervalMonths: null,
+    remainingDays: null,
+  },
 ]
 
 async function mountFor(vehicleId: string) {

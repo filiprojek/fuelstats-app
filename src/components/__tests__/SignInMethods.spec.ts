@@ -111,7 +111,11 @@ describe('SignInMethods', () => {
 
     it('shows the result of a link flow passed back in the hash and clears it', async () => {
       const { wrapper, router } = await mountWith(baseUser, '#linked=authelia')
-      expect(wrapper.emitted('notify')?.[0]).toEqual(['success', 'Authelia linked', 'You can now sign in with Authelia.'])
+      expect(wrapper.emitted('notify')?.[0]).toEqual([
+        'success',
+        'Authelia linked',
+        'You can now sign in with Authelia.',
+      ])
       expect(apiMock.get).toHaveBeenCalledWith('/user/me')
       expect(router.currentRoute.value.hash).toBe('')
     })
@@ -148,7 +152,10 @@ describe('SignInMethods', () => {
       await wrapper.find('form.password-form').trigger('submit')
       await flushPromises()
 
-      expect(apiMock.put).toHaveBeenCalledWith('/user/password', { currentPassword: 'oldpass', newPassword: 'newpassword' })
+      expect(apiMock.put).toHaveBeenCalledWith('/user/password', {
+        currentPassword: 'oldpass',
+        newPassword: 'newpassword',
+      })
       expect(wrapper.emitted('notify')?.[0]?.[0]).toBe('success')
       expect((wrapper.find('#new-password').element as HTMLInputElement).value).toBe('')
     })
@@ -192,7 +199,11 @@ describe('SignInMethods', () => {
       await wrapper.find('#confirm-password').setValue('newpassword')
       await wrapper.find('form.password-form').trigger('submit')
       await flushPromises()
-      expect(wrapper.emitted('notify')?.[0]).toEqual(['danger', 'Could not update password', 'Current password is incorrect'])
+      expect(wrapper.emitted('notify')?.[0]).toEqual([
+        'danger',
+        'Could not update password',
+        'Current password is incorrect',
+      ])
     })
   })
 })

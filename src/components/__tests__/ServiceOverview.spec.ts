@@ -18,8 +18,23 @@ const item = (extra: Record<string, unknown>) => ({
 })
 
 const status = [
-  item({ serviceTaskId: 'ok', serviceTaskName: 'Battery', status: 'OK', intervalKm: 10000, lastServiceOdometer: 95000, nextServiceOdometer: 105000, remainingKm: 5000 }),
-  item({ serviceTaskId: 'warn', serviceTaskName: 'Brakes', status: 'WARNING', intervalMonths: 12, remainingDays: 30, nextServiceDate: '2026-11-16' }),
+  item({
+    serviceTaskId: 'ok',
+    serviceTaskName: 'Battery',
+    status: 'OK',
+    intervalKm: 10000,
+    lastServiceOdometer: 95000,
+    nextServiceOdometer: 105000,
+    remainingKm: 5000,
+  }),
+  item({
+    serviceTaskId: 'warn',
+    serviceTaskName: 'Brakes',
+    status: 'WARNING',
+    intervalMonths: 12,
+    remainingDays: 30,
+    nextServiceDate: '2026-11-16',
+  }),
   item({
     serviceTaskId: 'over',
     serviceTaskName: 'Oil',
@@ -32,7 +47,15 @@ const status = [
     remainingDays: 10,
     nextServiceDate: '2026-10-27',
   }),
-  item({ serviceTaskId: 'ok2', serviceTaskName: 'Filter', status: 'OK', intervalKm: 10000, lastServiceOdometer: 99000, nextServiceOdometer: 109000, remainingKm: 9000 }),
+  item({
+    serviceTaskId: 'ok2',
+    serviceTaskName: 'Filter',
+    status: 'OK',
+    intervalKm: 10000,
+    lastServiceOdometer: 99000,
+    nextServiceOdometer: 109000,
+    remainingKm: 9000,
+  }),
 ]
 
 async function mountFor(vehicleId = 'v1') {
@@ -101,7 +124,12 @@ describe('ServiceOverview', () => {
     await wrapper.find('.btn-record').trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.path).toBe('/add/service')
-    expect(router.currentRoute.value.query).toMatchObject({ serviceTaskId: 'over', serviceType: 'Oil', odometer: '100000', vehicleId: 'v1' })
+    expect(router.currentRoute.value.query).toMatchObject({
+      serviceTaskId: 'over',
+      serviceType: 'Oil',
+      odometer: '100000',
+      vehicleId: 'v1',
+    })
   })
 
   it('refetches when the vehicle changes', async () => {

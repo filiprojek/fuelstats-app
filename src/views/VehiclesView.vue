@@ -29,7 +29,12 @@
           </div>
         </div>
         <div class="v-actions">
-          <IconLabelButton class="i-service" icon="build" @click="openServicePlans(vehicle)" aria-label="Service plans" />
+          <IconLabelButton
+            class="i-service"
+            icon="build"
+            @click="openServicePlans(vehicle)"
+            aria-label="Service plans"
+          />
           <IconLabelButton class="i-edit" icon="edit" @click="startEdit(vehicle)" aria-label="Edit vehicle" />
           <IconLabelButton class="i-delete" icon="delete" @click="deleteVehicle(vehicle)" aria-label="Delete vehicle" />
         </div>
@@ -81,12 +86,12 @@
     <div class="modal-backdrop" v-if="isServicePlansOpen" @click.self="closeServicePlans">
       <div class="edit-modal service-plans-modal">
         <h3>Service Plans: {{ selectedVehicleForPlans?.name }}</h3>
-        
+
         <div v-if="isLoadingPlans" class="plans-loading">
           <span class="material-symbols-outlined spin">sync</span>
           <span>Loading service plans...</span>
         </div>
-        
+
         <form v-else @submit.prevent="saveServicePlans">
           <div class="plans-list">
             <div v-for="task in serviceTasksList" :key="task._id || task.id" class="plan-row">
@@ -158,7 +163,12 @@
               </div>
               <div class="custom-actions-row">
                 <button type="button" class="btn-cancel-custom" @click="isAddingCustomTask = false">Cancel</button>
-                <button type="button" class="btn-save-custom" @click="addCustomServiceTask" :disabled="!customTaskName.trim()">
+                <button
+                  type="button"
+                  class="btn-save-custom"
+                  @click="addCustomServiceTask"
+                  :disabled="!customTaskName.trim()"
+                >
                   <span class="material-symbols-outlined">add</span> Add Item
                 </button>
               </div>
@@ -361,7 +371,8 @@ async function openServicePlans(vehicle: Vehicle) {
       const currentMap = intervalsMap[val.serviceTaskId]
       if (currentMap) {
         currentMap.intervalKm = val.intervalKm !== null && val.intervalKm !== undefined ? String(val.intervalKm) : ''
-        currentMap.intervalMonths = val.intervalMonths !== null && val.intervalMonths !== undefined ? String(val.intervalMonths) : ''
+        currentMap.intervalMonths =
+          val.intervalMonths !== null && val.intervalMonths !== undefined ? String(val.intervalMonths) : ''
       }
     }
 
@@ -394,7 +405,7 @@ async function saveServicePlans() {
       intervalKm: val.intervalKm ? Number(val.intervalKm) : null,
       intervalMonths: val.intervalMonths ? Number(val.intervalMonths) : null,
     }))
-    
+
     await api.post(`/vehicles/${selectedVehicleForPlans.value.id}/service-intervals`, { intervals: payload })
     showDialog('success', 'Service plans updated successfully', '', 1500)
     closeServicePlans()
@@ -712,7 +723,7 @@ async function deleteVehicle(vehicle: Vehicle) {
   gap: var(--space-sm);
   color: var(--text-secondary);
   padding: var(--space-xl);
-  
+
   .spin {
     animation: spin 1.5s linear infinite;
   }
@@ -738,7 +749,9 @@ async function deleteVehicle(vehicle: Vehicle) {
   border-radius: var(--radius-md);
   padding: 0.3rem 0.6rem;
   box-sizing: border-box;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 
   &:focus-within {
     border-color: var(--color-primary-light);
@@ -807,7 +820,7 @@ async function deleteVehicle(vehicle: Vehicle) {
     flex-direction: row;
     align-items: center;
     gap: var(--space-sm);
-    
+
     .input-wrp {
       width: 7rem;
     }
@@ -918,7 +931,7 @@ async function deleteVehicle(vehicle: Vehicle) {
     display: flex;
     flex-direction: row;
     gap: var(--space-sm);
-    
+
     .input-wrp {
       flex: 1;
     }

@@ -10,23 +10,97 @@ const imagesMock = vi.hoisted(() => ({ compressImage: vi.fn(async (file: File) =
 vi.mock('@/lib/images', () => imagesMock)
 
 const vehicles = [
-  { id: 'v1', name: 'Octavia', registrationPlate: 'A', fuelType: 'diesel', isDefault: true, createdAt: '', userId: 'u' },
-  { id: 'v2', name: 'Fabia', registrationPlate: 'B', fuelType: 'gasoline95', isDefault: false, createdAt: '', userId: 'u' },
+  {
+    id: 'v1',
+    name: 'Octavia',
+    registrationPlate: 'A',
+    fuelType: 'diesel',
+    isDefault: true,
+    createdAt: '',
+    userId: 'u',
+  },
+  {
+    id: 'v2',
+    name: 'Fabia',
+    registrationPlate: 'B',
+    fuelType: 'gasoline95',
+    isDefault: false,
+    createdAt: '',
+    userId: 'u',
+  },
 ]
 
 const refuels = [
-  { id: 'r1', userId: 'u', vehicleId: 'v1', fuelType: 'diesel', note: 'full tank', liters: 40, pricePerLiter: 38.5, totalPrice: 1540, mileage: 10000, date: '2026-10-01T10:00:00Z', createdAt: '' },
-  { id: 'r2', userId: 'u', vehicleId: 'v2', fuelType: 'gasoline95', note: null, liters: 30, pricePerLiter: 40, totalPrice: 1200, mileage: 5000, date: '2026-10-05T10:00:00Z', createdAt: '' },
-  { id: 'gone', userId: 'u', vehicleId: 'deleted', fuelType: 'diesel', note: null, liters: 1, pricePerLiter: 1, totalPrice: 1, mileage: 1, date: '2026-10-06T10:00:00Z', createdAt: '' },
+  {
+    id: 'r1',
+    userId: 'u',
+    vehicleId: 'v1',
+    fuelType: 'diesel',
+    note: 'full tank',
+    liters: 40,
+    pricePerLiter: 38.5,
+    totalPrice: 1540,
+    mileage: 10000,
+    date: '2026-10-01T10:00:00Z',
+    createdAt: '',
+  },
+  {
+    id: 'r2',
+    userId: 'u',
+    vehicleId: 'v2',
+    fuelType: 'gasoline95',
+    note: null,
+    liters: 30,
+    pricePerLiter: 40,
+    totalPrice: 1200,
+    mileage: 5000,
+    date: '2026-10-05T10:00:00Z',
+    createdAt: '',
+  },
+  {
+    id: 'gone',
+    userId: 'u',
+    vehicleId: 'deleted',
+    fuelType: 'diesel',
+    note: null,
+    liters: 1,
+    pricePerLiter: 1,
+    totalPrice: 1,
+    mileage: 1,
+    date: '2026-10-06T10:00:00Z',
+    createdAt: '',
+  },
 ]
 const services = [
-  { id: 's1', userId: 'u', vehicleId: 'v1', serviceType: 'engine-oil', customType: null, itemName: null, cost: 2500, mileage: 10500, shop: null, selfService: false, note: null, photos: ['/uploads/a.jpg'], date: '2026-10-03T10:00:00Z', createdAt: '' },
+  {
+    id: 's1',
+    userId: 'u',
+    vehicleId: 'v1',
+    serviceType: 'engine-oil',
+    customType: null,
+    itemName: null,
+    cost: 2500,
+    mileage: 10500,
+    shop: null,
+    selfService: false,
+    note: null,
+    photos: ['/uploads/a.jpg'],
+    date: '2026-10-03T10:00:00Z',
+    createdAt: '',
+  },
 ]
-const odometers = [{ id: 'o1', userId: 'u', vehicleId: 'v1', mileage: 11000, note: 'trip', date: '2026-10-10T10:00:00Z', createdAt: '' }]
+const odometers = [
+  { id: 'o1', userId: 'u', vehicleId: 'v1', mileage: 11000, note: 'trip', date: '2026-10-10T10:00:00Z', createdAt: '' },
+]
 
 async function mountView(odometerList: unknown[] = odometers) {
   apiMock.get.mockImplementation(async (url: string) => {
-    const data: Record<string, unknown> = { '/vehicles': vehicles, '/refuels': refuels, '/services': services, '/odometer': odometerList }
+    const data: Record<string, unknown> = {
+      '/vehicles': vehicles,
+      '/refuels': refuels,
+      '/services': services,
+      '/odometer': odometerList,
+    }
     return { data: data[url] ?? [] }
   })
   const router = makeRouter([{ path: '/add/:type?', name: 'add', component: { template: '<p />' } }])
@@ -110,7 +184,16 @@ describe('History view', () => {
   })
 
   describe('start odometer record', () => {
-    const start = { id: 'o0', userId: 'u', vehicleId: 'v1', mileage: 9000, note: 'bought', date: '2026-09-01T10:00:00Z', createdAt: '', isStart: true }
+    const start = {
+      id: 'o0',
+      userId: 'u',
+      vehicleId: 'v1',
+      mileage: 9000,
+      note: 'bought',
+      date: '2026-09-01T10:00:00Z',
+      createdAt: '',
+      isStart: true,
+    }
     const editOdometer = async (w: ReturnType<typeof mount>, id: string) => {
       const card = w.findAll('.history-card.odometer').find((c) => c.attributes('data-id') === id)!
       await card.find('.btn-edit').trigger('click')
@@ -166,7 +249,11 @@ describe('History view', () => {
 
   describe('editing', () => {
     const editCard = async (w: ReturnType<typeof mount>, type: string) => {
-      await w.findAll('.history-card').find((c) => c.classes(type))!.find('.btn-edit').trigger('click')
+      await w
+        .findAll('.history-card')
+        .find((c) => c.classes(type))!
+        .find('.btn-edit')
+        .trigger('click')
     }
 
     it('updates a refuel record', async () => {
@@ -178,7 +265,18 @@ describe('History view', () => {
       await w.find('#edit_hist_note').setValue('')
       await w.find('.edit-modal form').trigger('submit')
       await flushPromises()
-      expect(apiMock.put).toHaveBeenCalledWith('/refuels/r1', expect.objectContaining({ vehicleId: 'v1', fuelType: 'diesel', liters: 42, pricePerLiter: 38.5, totalPrice: 1540, mileage: 10000, note: null }))
+      expect(apiMock.put).toHaveBeenCalledWith(
+        '/refuels/r1',
+        expect.objectContaining({
+          vehicleId: 'v1',
+          fuelType: 'diesel',
+          liters: 42,
+          pricePerLiter: 38.5,
+          totalPrice: 1540,
+          mileage: 10000,
+          note: null,
+        }),
+      )
       expect(apiMock.put.mock.calls[0]![1].date).toBe(new Date('2026-10-01T10:00:00Z').toISOString())
       expect(toast(w)).toContain('Refuel record updated successfully')
       expect(w.find('.edit-modal').exists()).toBe(false)
@@ -197,7 +295,10 @@ describe('History view', () => {
       expect(imagesMock.compressImage).toHaveBeenCalledWith(expect.objectContaining({ name: 'x.png' }))
       await w.find('.edit-modal form').trigger('submit')
       await flushPromises()
-      expect(apiMock.put).toHaveBeenLastCalledWith('/services/s1', expect.objectContaining({ cost: 2500, photos: ['/uploads/a.jpg', 'data:compressed/x.png'] }))
+      expect(apiMock.put).toHaveBeenLastCalledWith(
+        '/services/s1',
+        expect.objectContaining({ cost: 2500, photos: ['/uploads/a.jpg', 'data:compressed/x.png'] }),
+      )
 
       await editCard(w, 'service')
       await w.find('[aria-label="Remove saved photo"]').trigger('click')
@@ -224,7 +325,10 @@ describe('History view', () => {
       await w.find('#edit_hist_mileage').setValue('11111')
       await w.find('.edit-modal form').trigger('submit')
       await flushPromises()
-      expect(apiMock.put).toHaveBeenCalledWith('/odometer/o1', expect.objectContaining({ mileage: 11111, note: 'trip' }))
+      expect(apiMock.put).toHaveBeenCalledWith(
+        '/odometer/o1',
+        expect.objectContaining({ mileage: 11111, note: 'trip' }),
+      )
     })
 
     it('reports update errors and keeps the modal open', async () => {
@@ -249,7 +353,11 @@ describe('History view', () => {
       const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
       apiMock.delete.mockResolvedValue({})
       const w = await mountView()
-      await w.findAll('.history-card').find((c) => c.classes(type))!.find('.btn-delete').trigger('click')
+      await w
+        .findAll('.history-card')
+        .find((c) => c.classes(type))!
+        .find('.btn-delete')
+        .trigger('click')
       await flushPromises()
       expect(confirm).toHaveBeenCalledWith(`Are you sure you want to delete this ${label}?`)
       expect(apiMock.delete).toHaveBeenCalledWith(url)

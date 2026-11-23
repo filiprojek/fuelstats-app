@@ -4,7 +4,14 @@ import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import api from '@/lib/api'
 import { useAuthStore } from '@/stores/auth'
-import { fetchProviders, oidcErrorMessage, parseAuthHash, providerStartUrl, redirectTo, type OidcProvider } from '@/lib/oidc'
+import {
+  fetchProviders,
+  oidcErrorMessage,
+  parseAuthHash,
+  providerStartUrl,
+  redirectTo,
+  type OidcProvider,
+} from '@/lib/oidc'
 import IconLabelButton from '@/components/IconLabelButton.vue'
 import TextInput from '@/components/TextInput.vue'
 
@@ -90,7 +97,12 @@ async function savePassword() {
     const wasSet = hasPassword.value
     passwordForm.current = passwordForm.next = passwordForm.confirm = ''
     await refreshUser()
-    emit('notify', 'success', wasSet ? 'Password changed' : 'Password set', wasSet ? '' : 'You can now also log in with your email.')
+    emit(
+      'notify',
+      'success',
+      wasSet ? 'Password changed' : 'Password set',
+      wasSet ? '' : 'You can now also log in with your email.',
+    )
   } catch (e) {
     emit('notify', 'danger', 'Could not update password', errorMessage(e, 'Update failed'))
   }
@@ -121,7 +133,9 @@ onMounted(async () => {
           <span class="material-symbols-outlined">key</span>
           <div>
             <h3>{{ p.name }}</h3>
-            <p v-if="identityFor(p.id)">Linked{{ identityFor(p.id)?.email ? ` as ${identityFor(p.id)?.email}` : '' }}</p>
+            <p v-if="identityFor(p.id)">
+              Linked{{ identityFor(p.id)?.email ? ` as ${identityFor(p.id)?.email}` : '' }}
+            </p>
             <p v-else>Not linked</p>
           </div>
         </div>
@@ -136,20 +150,46 @@ onMounted(async () => {
           :title="signInMethodCount <= 1 ? 'Set a password first – this is your only way to sign in' : ''"
           @click="unlink(p.id)"
         />
-        <IconLabelButton v-else class="btn-action btn-link" label="Link" icon="link" inline :disabled="busy !== null" @click="link(p.id)" />
+        <IconLabelButton
+          v-else
+          class="btn-action btn-link"
+          label="Link"
+          icon="link"
+          inline
+          :disabled="busy !== null"
+          @click="link(p.id)"
+        />
       </li>
     </ul>
 
     <p v-if="!hasPassword" class="hint">
-      Your account has no password yet. Set a password to also log in with your email, or before unlinking your only provider.
+      Your account has no password yet. Set a password to also log in with your email, or before unlinking your only
+      provider.
     </p>
 
     <form class="password-form" @submit.prevent="savePassword">
       <h3 class="password-title">{{ hasPassword ? 'Change password' : 'Set a password' }}</h3>
-      <TextInput v-if="hasPassword" v-model="passwordForm.current" id="current-password" type="password" placeholder="Current password" />
+      <TextInput
+        v-if="hasPassword"
+        v-model="passwordForm.current"
+        id="current-password"
+        type="password"
+        placeholder="Current password"
+      />
       <TextInput v-model="passwordForm.next" id="new-password" type="password" placeholder="New password" />
-      <TextInput v-model="passwordForm.confirm" id="confirm-password" type="password" placeholder="Confirm new password" />
-      <IconLabelButton type="submit" class="btn-action btn-save-password" :label="hasPassword ? 'Change' : 'Set password'" icon="lock" inline />
+      <TextInput
+        v-model="passwordForm.confirm"
+        id="confirm-password"
+        type="password"
+        placeholder="Confirm new password"
+      />
+      <IconLabelButton
+        type="submit"
+        class="btn-action btn-save-password"
+        :label="hasPassword ? 'Change' : 'Set password'"
+        icon="lock"
+        inline
+      />
     </form>
   </div>
 </template>

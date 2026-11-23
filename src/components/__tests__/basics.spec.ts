@@ -29,7 +29,10 @@ describe('AppDialog', () => {
 describe('IconLabelButton', () => {
   it('renders icon and label and forwards attributes and clicks', async () => {
     const onClick = vi.fn()
-    const w = mount(IconLabelButton, { props: { icon: 'add', label: 'Add', inline: true, elevated: true }, attrs: { id: 'x', onClick } })
+    const w = mount(IconLabelButton, {
+      props: { icon: 'add', label: 'Add', inline: true, elevated: true },
+      attrs: { id: 'x', onClick },
+    })
     const btn = w.find('button')
     expect(btn.attributes('id')).toBe('x')
     expect(btn.classes()).toEqual(expect.arrayContaining(['inline', 'elevated']))
@@ -110,7 +113,9 @@ describe('LineChart', () => {
     const line = w.findComponent({ name: 'Line' })
     expect(line.props('data')).toEqual({
       labels: ['Jan', 'Feb'],
-      datasets: [expect.objectContaining({ label: 'Price', data: [1, 2], borderColor: '#4a4458', backgroundColor: '#4a445833' })],
+      datasets: [
+        expect.objectContaining({ label: 'Price', data: [1, 2], borderColor: '#4a4458', backgroundColor: '#4a445833' }),
+      ],
     })
     expect(line.props('options')).toMatchObject({ responsive: true, maintainAspectRatio: false })
   })

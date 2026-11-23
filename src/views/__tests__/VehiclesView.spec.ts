@@ -8,8 +8,28 @@ const apiMock = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn(), d
 vi.mock('@/lib/api', () => ({ default: apiMock }))
 
 const vehicles = [
-  { id: 'v1', name: 'Octavia', registrationPlate: '1ab2345', fuelType: 'diesel', vin: 'TMB123', isDefault: true, note: 'daily', createdAt: '', userId: 'u' },
-  { id: 'v2', name: 'Fabia', registrationPlate: '9zz9999', fuelType: 'gasoline95', vin: null, isDefault: false, note: null, createdAt: '', userId: 'u' },
+  {
+    id: 'v1',
+    name: 'Octavia',
+    registrationPlate: '1ab2345',
+    fuelType: 'diesel',
+    vin: 'TMB123',
+    isDefault: true,
+    note: 'daily',
+    createdAt: '',
+    userId: 'u',
+  },
+  {
+    id: 'v2',
+    name: 'Fabia',
+    registrationPlate: '9zz9999',
+    fuelType: 'gasoline95',
+    vin: null,
+    isDefault: false,
+    note: null,
+    createdAt: '',
+    userId: 'u',
+  },
 ]
 
 const tasks = [
@@ -38,7 +58,8 @@ describe('VehiclesView', () => {
     apiMock.get.mockImplementation(async (url: string) => {
       if (url === '/vehicles') return { data: vehicleData }
       if (url === '/vehicles/service-tasks') return { data: tasks }
-      if (url === '/vehicles/v1/service-intervals') return { data: [{ serviceTaskId: 't1', intervalKm: 15000, intervalMonths: null }] }
+      if (url === '/vehicles/v1/service-intervals')
+        return { data: [{ serviceTaskId: 't1', intervalKm: 15000, intervalMonths: null }] }
       return { data: [] }
     })
     vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -204,7 +225,11 @@ describe('VehiclesView', () => {
       await w.findAll('.plan-row')[0]!.find('.btn-clear-row').trigger('click')
       await w.find('.service-plans-modal form').trigger('submit')
       await flushPromises()
-      expect(apiMock.post.mock.calls[0]![1].intervals[0]).toEqual({ serviceTaskId: 't1', intervalKm: null, intervalMonths: null })
+      expect(apiMock.post.mock.calls[0]![1].intervals[0]).toEqual({
+        serviceTaskId: 't1',
+        intervalKm: null,
+        intervalMonths: null,
+      })
     })
 
     it('adds a custom service item with thresholds', async () => {

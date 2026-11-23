@@ -21,8 +21,24 @@ const NOW = new Date('2026-10-17T12:00:00Z')
 const daysAgo = (d: number) => new Date(NOW.getTime() - d * 86400000).toISOString()
 
 const vehicles = [
-  { id: 'v1', name: 'Octavia', registrationPlate: '1ab2345', fuelType: 'diesel', isDefault: false, createdAt: '', userId: 'u' },
-  { id: 'v2', name: 'Fabia', registrationPlate: '9zz9999', fuelType: 'gasoline95', isDefault: true, createdAt: '', userId: 'u' },
+  {
+    id: 'v1',
+    name: 'Octavia',
+    registrationPlate: '1ab2345',
+    fuelType: 'diesel',
+    isDefault: false,
+    createdAt: '',
+    userId: 'u',
+  },
+  {
+    id: 'v2',
+    name: 'Fabia',
+    registrationPlate: '9zz9999',
+    fuelType: 'gasoline95',
+    isDefault: true,
+    createdAt: '',
+    userId: 'u',
+  },
 ]
 
 const refuel = (id: string, mileage: number, liters: number, ago: number, extra = {}) => ({
@@ -58,9 +74,7 @@ function respond(vehiclesData: unknown[], refuelsData: unknown[]) {
 }
 
 async function mountHome() {
-  const router = makeRouter([
-    { path: '/add/:type?', name: 'add', component: { template: '<p />' } },
-  ])
+  const router = makeRouter([{ path: '/add/:type?', name: 'add', component: { template: '<p />' } }])
   await router.push('/')
   const wrapper = mount(HomeView, { global: { plugins: [router] } })
   await flushPromises()
@@ -129,10 +143,22 @@ describe('HomeView', () => {
 
   describe('mileage from odometer and service records', () => {
     const odometer = (id: string, mileage: number, ago: number, vehicleId = 'v2') => ({
-      id, userId: 'u', vehicleId, mileage, date: daysAgo(ago), createdAt: daysAgo(ago),
+      id,
+      userId: 'u',
+      vehicleId,
+      mileage,
+      date: daysAgo(ago),
+      createdAt: daysAgo(ago),
     })
     const service = (id: string, mileage: number, ago: number, vehicleId = 'v2') => ({
-      id, userId: 'u', vehicleId, serviceType: 'engine-oil', cost: 0, mileage, date: daysAgo(ago), createdAt: daysAgo(ago),
+      id,
+      userId: 'u',
+      vehicleId,
+      serviceType: 'engine-oil',
+      cost: 0,
+      mileage,
+      date: daysAgo(ago),
+      createdAt: daysAgo(ago),
     })
 
     function respondAll(refuelsData: unknown[], odometerData: unknown[], servicesData: unknown[]) {
