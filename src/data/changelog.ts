@@ -14,6 +14,23 @@ export interface ReleaseLog {
 
 export const CHANGELOG_DATA: ReleaseLog[] = [
   {
+    version: '2.2.0',
+    date: '2026-11-25',
+    title: 'Single Sign-On & Remember Me',
+    highlight: 'Sign in with Authelia or any OpenID Connect provider, and stay signed in with Remember me.',
+    changes: [
+      { type: 'feat', text: 'Continue with <provider> sign-in buttons and OIDC callback handling' },
+      { type: 'feat', text: 'Settings → Sign-in methods: link/unlink providers and set or change your password' },
+      { type: 'feat', text: 'Remember me checkbox with automatic session renewal' },
+      { type: 'feat', text: 'Import service CSV into the selected vehicle and show import counts' },
+      { type: 'feat', text: 'Kilometers driven start at the first refuel or a start odometer record' },
+      { type: 'fix', text: 'Kilometers driven include odometer and service records' },
+      { type: 'fix', text: 'Service photos are compressed before upload' },
+      { type: 'fix', text: 'Service import wizard closes after a successful import' },
+      { type: 'fix', text: 'Offline cache no longer intercepts sign-in callbacks and photo links' },
+    ],
+  },
+  {
     version: '2.1.1',
     date: '2026-07-20',
     title: 'Custom Service Tasks & Maintenance Plans',

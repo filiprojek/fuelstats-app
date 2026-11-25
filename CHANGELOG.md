@@ -2,6 +2,21 @@
 
 All notable changes to the `fuelstats-app` frontend application will be documented in this file.
 
+## [2.2.0] - 2026-11-25
+
+### Features & Improvements
+* `feat`: Single sign-on: *Continue with …* buttons for OpenID Connect providers (e.g. Authelia) and the OIDC callback view.
+* `feat`: Settings → Sign-in methods: link and unlink providers, set or change the account password.
+* `feat`: Remember me checkbox with automatic session renewal.
+* `feat`: Import service CSV into the selected vehicle and show import counts.
+* `feat`: Kilometers driven start at the first refuel or a start odometer record.
+* `fix`: Kilometers driven include odometer and service records.
+* `fix`: Service photos are compressed before upload.
+* `fix`: Service import wizard closes after a successful import.
+* `fix(pwa)`: The service worker no longer answers `/api/` and `/uploads/` navigations with `index.html`, which broke the OIDC callback.
+
+---
+
 ## [2.1.1] - 2026-07-20
 
 ### Features & Improvements
